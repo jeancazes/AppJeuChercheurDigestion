@@ -4,85 +4,21 @@
   padding: 0;
 }
 
-body {
+html, body {
   font-family: 'Nunito', 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%);
+  background: #F8FCFF;
   min-height: 100vh;
-  color: #263238;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px) translateX(-50%); }
-  to { opacity: 1; transform: translateY(0) translateX(-50%); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.notification {
-  animation: slideDown 0.3s ease-out;
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button {
   font-family: inherit;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
 }
 
-button:hover {
-  transform: translateY(-2px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-input {
+input, select, textarea {
   font-family: inherit;
-}
-
-input:focus {
-  outline: none;
-  border-color: #0288D1 !important;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #E1F5FE;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #4FC3F7;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #0288D1;
 }
