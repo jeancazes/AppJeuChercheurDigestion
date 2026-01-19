@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>Élève - SVT Digestion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F5F9FC 0%, #EBF4F9 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            margin-bottom: 30px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .welcome-text h1 {
+            color: #5A9AB8;
+            margin-bottom: 10px;
+        }
+
+        .welcome-text p {
+            color: #6B8A9A;
+        }
+
+        .team-badge {
+            background: linear-gradient(135deg, #A8D8EA 0%, #7FB5D1 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .team-badge .level {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .team-badge .budget {
+            font-size: 18px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(90, 154, 184, 0.1);
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.2);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #A8D8EA 0%, #7FB5D1 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            color: #5A9AB8;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #E3EEF3;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #5A9AB8;
+            box-shadow: 0 0 0 3px rgba(90, 154, 184, 0.1);
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #A8D8EA;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(90, 154, 184, 0.15);
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .resource-title h3 {
+            color: #5A9AB8;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .resource-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-level-1 {
+            background: linear-gradient(135deg, #B8E6D5 0%, #9AD4C2 100%);
+            color: white;
+        }
+
+        .badge-level-2 {
+            background: linear-gradient(135deg, #C8B9E8 0%, #A88DC7 100%);
+            color: white;
+        }
+
+        .badge-level-3 {
+            background: linear-gradient(135deg, #F9E4AD 0%, #EFD68D 100%);
+            color: white;
+        }
+
+        .badge-level-4 {
+            background: linear-gradient(135deg, #F5C6D6 0%, #E89BB0 100%);
+            color: white;
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, #A8D8EA 0%, #7FB5D1 100%);
+            color: white;
+        }
+
+        .badge-price {
+            background: linear-gradient(135deg, #F9E4AD 0%, #EFD68D 100%);
+            color: white;
+        }
+
+        .resource-description {
+            color: #6B8A9A;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #B8E6D5 0%, #9AD4C2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(184, 230, 213, 0.3);
+        }
+
+        .btn-buy:disabled {
+            background: #E0E0E0;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-link {
+            background: linear-gradient(135deg, #A8D8EA 0%, #7FB5D1 100%);
+            color: white;
+        }
+
+        .btn-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 216, 234, 0.3);
+        }
+
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+        }
+
+        .lock-icon {
+            color: #5A9AB8;
+            font-size: 48px;
+        }
+
+        .owned-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #B8E6D5 0%, #9AD4C2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="welcome">
+                <div class="welcome-text">
+                    <h1>Bienvenue, Équipe 1</h1>
+                    <p>Explorez les ressources et progressez dans votre enquête médicale !</p>
+                </div>
+                <div class="team-badge">
+                    <div class="level">LEVEL 2 - Interne</div>
+                    <div class="budget">Budget : 200 €</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab active" onclick="showTab('catalog')">Catalogue</button>
+            <button class="tab" onclick="showTab('owned')">Mes Ressources</button>
+            <button class="tab" onclick="showTab('profile')">Profil d'équipe</button>
+        </div>
+
+        <div id="catalog" class="tab-content active">
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Niveau</label>
+                    <select id="filterLevel" onchange="filterResources()">
+                        <option value="">Tous les niveaux</option>
+                        <option value="1">Niveau 1</option>
+                        <option value="2">Niveau 2</option>
+                        <option value="3">Niveau 3</option>
+                        <option value="4">Niveau 4</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Type</label>
+                    <select id="filterType" onchange="filterResources()">
+                        <option value="">Tous les types</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Rechercher</label>
+                    <input type="text" id="searchInput" placeholder="Titre ou description..." oninput="filterResources()">
+                </div>
+            </div>
+
+            <div class="resources-grid" id="resourcesGrid"></div>
+        </div>
+
+        <div id="owned" class="tab-content">
+            <div class="resources-grid" id="ownedGrid"></div>
+        </div>
+
+        <div id="profile" class="tab-content">
+            <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);">
+                <h2 style="color: #5A9AB8; margin-bottom: 20px;">Profil de l'équipe</h2>
+                <div style="display: grid; gap: 20px;">
+                    <div>
+                        <strong style="color: #5A9AB8;">Nom de l'équipe :</strong> Équipe 1
+                    </div>
+                    <div>
+                        <strong style="color: #5A9AB8;">Membres :</strong> Alice D., Bob M., Charlie R.
+                    </div>
+                    <div>
+                        <strong style="color: #5A9AB8;">Niveau actuel :</strong> LEVEL 2 - Interne
+                    </div>
+                    <div>
+                        <strong style="color: #5A9AB8;">Budget disponible :</strong> 200 €
+                    </div>
+                    <div>
+                        <strong style="color: #5A9AB8;">Points de Découverte :</strong> 2
+                    </div>
+                    <div>
+                        <strong style="color: #5A9AB8;">Points de Raisonnement :</strong> 3
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'catalog';
+        let team = {
+            level: 2,
+            budget: 200,
+            ownedResources: []
+        };
+
+        let allResources = [
+            {level: 1, type: 'Observations', title: 'Observation de la langue', description: 'Étude détaillée de la surface linguale', price: 0, link: ''},
+            {level: 1, type: 'Livres', title: 'Anatomie du système digestif', description: 'Ouvrage complet sur l\'anatomie', price: 30, link: ''},
+            {level: 2, type: 'Dissections', title: 'Dissection de l\'estomac de porc', description: 'Étude comparative de l\'anatomie digestive', price: 100, link: ''},
+            {level: 2, type: 'Expériences', title: 'Digestion in-vitro', description: 'Expérience de digestion en laboratoire', price: 150, link: ''},
+            {level: 3, type: 'Analyses', title: 'Analyse de sang et urine', description: 'Pack complet d\'analyses médicales', price: 50, link: ''},
+            {level: 3, type: 'Doc Médical', title: 'Dossier médical complet', description: 'Étude de cas médical sur la digestion', price: 300, link: ''},
+            {level: 4, type: 'Synthèses', title: 'Synthèse bibliographique', description: 'Compilation de recherches scientifiques', price: 500, link: ''}
+        ];
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            currentTab = tabName;
+
+            if (tabName === 'owned') {
+                renderOwnedResources();
+            }
+        }
+
+        function filterResources() {
+            renderResources();
+        }
+
+        function renderResources() {
+            const filterLevel = document.getElementById('filterLevel').value;
+            const filterType = document.getElementById('filterType').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allResources.filter(r => {
+                const matchLevel = !filterLevel || r.level.toString() === filterLevel;
+                const matchType = !filterType || r.type === filterType;
+                const matchSearch = !searchTerm || 
+                    r.title.toLowerCase().includes(searchTerm) || 
+                    r.description.toLowerCase().includes(searchTerm);
+                return matchLevel && matchType && matchSearch;
+            });
+
+            const grid = document.getElementById('resourcesGrid');
+            grid.innerHTML = filtered.map((resource, index) => {
+                const isLocked = resource.level > team.level;
+                const isOwned = team.ownedResources.includes(index);
+                const canBuy = !isLocked && !isOwned && team.budget >= resource.price;
+
+                return `
+                    <div class="resource-card" style="position: relative; opacity: ${isLocked ? 0.5 : 1}">
+                        ${isOwned ? '<div class="owned-badge">✓ Possédé</div>' : ''}
+                        <div class="resource-header">
+                            <div class="resource-title">
+                                <h3>${resource.title}</h3>
+                                <div class="resource-meta">
+                                    <span class="badge badge-level-${resource.level}">LEVEL ${resource.level}</span>
+                                    <span class="badge badge-type">${resource.type}</span>
+                                    <span class="badge badge-price">${resource.price} €</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="resource-description">${resource.description}</p>
+                        <div class="resource-actions">
+                            ${!isOwned ? `
+                                <button class="btn btn-buy" ${!canBuy ? 'disabled' : ''} onclick="buyResource(${index})">
+                                    ${isLocked ? '🔒 Verrouillé' : canBuy ? '💰 Acheter' : '❌ Insuffisant'}
+                                </button>
+                            ` : `
+                                <button class="btn btn-link" onclick="alert('Ressource disponible !')">
+                                    📖 Consulter
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyResource(index) {
+            const resource = allResources[index];
+            if (team.budget >= resource.price && resource.level <= team.level) {
+                team.budget -= resource.price;
+                team.ownedResources.push(index);
+                renderResources();
+                updateHeader();
+            }
+        }
+
+        function renderOwnedResources() {
+            const grid = document.getElementById('ownedGrid');
+            const owned = team.ownedResources.map(i => allResources[i]);
+
+            if (owned.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 60px; color: #6B8A9A;">Vous n\'avez encore acheté aucune ressource</div>';
+                return;
+            }
+
+            grid.innerHTML = owned.map(resource => `
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <div class="resource-title">
+                            <h3>${resource.title}</h3>
+                            <div class="resource-meta">
+                                <span class="badge badge-level-${resource.level}">LEVEL ${resource.level}</span>
+                                <span class="badge badge-type">${resource.type}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="resource-description">${resource.description}</p>
+                    <button class="btn btn-link">📖 Consulter</button>
+                </div>
+            `).join('');
+        }
+
+        function updateHeader() {
+            document.querySelector('.budget').textContent = `Budget : ${team.budget} €`;
+        }
+
+        function populateTypeFilter() {
+            const types = new Set(allResources.map(r => r.type));
+            const select = document.getElementById('filterType');
+            select.innerHTML = '<option value="">Tous les types</option>';
+            [...types].sort().forEach(type => {
+                select.innerHTML += `<option value="${type}">${type}</option>`;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderResources();
+            populateTypeFilter();
+        });
+    </script>
+</body>
+</html>

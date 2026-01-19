@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVT Digestion - Système de Jeu Éducatif</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F5F9FC 0%, #EBF4F9 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .logo svg {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 10px 20px rgba(90, 154, 184, 0.2));
+        }
+
+        h1 {
+            color: #5A9AB8;
+            font-size: 48px;
+            margin-bottom: 20px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subtitle {
+            color: #6B8A9A;
+            font-size: 20px;
+            margin-bottom: 50px;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(90, 154, 184, 0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(90, 154, 184, 0.2);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+        }
+
+        .card h2 {
+            color: #5A9AB8;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #6B8A9A;
+            line-height: 1.6;
+        }
+
+        .card-student {
+            border-top: 5px solid #A8D8EA;
+        }
+
+        .card-teacher {
+            border-top: 5px solid #B8E6D5;
+        }
+
+        .card-admin {
+            border-top: 5px solid #F5C6D6;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 2L9 9L2 9L2 15L9 15L9 22L15 22L15 15L22 15L22 9L15 9L15 2L9 2Z" fill="#5A9AB8"/>
+            </svg>
+        </div>
+
+        <h1>SVT Digestion</h1>
+        <p class="subtitle">Système de Jeu Éducatif sur la Digestion</p>
+
+        <div class="cards">
+            <a href="student.html" class="card card-student">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" fill="#A8D8EA"/>
+                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="#A8D8EA" stroke-width="2" fill="none"/>
+                </svg>
+                <h2>Élève</h2>
+                <p>Accédez aux ressources, consultez votre profil d'équipe et progressez dans vos niveaux</p>
+            </a>
+
+            <a href="teacher.html" class="card card-teacher">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="16" rx="2" fill="#B8E6D5"/>
+                    <path d="M8 2v4M16 2v4M3 10h18" stroke="white" stroke-width="2"/>
+                </svg>
+                <h2>Enseignant</h2>
+                <p>Gérez vos classes, créez des équipes et attribuez des points de réputation</p>
+            </a>
+
+            <a href="admin-resources.html" class="card card-admin">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#F5C6D6"/>
+                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#F5C6D6" stroke-width="2" fill="none"/>
+                </svg>
+                <h2>Gestion</h2>
+                <p>Administrez les ressources pédagogiques du système</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

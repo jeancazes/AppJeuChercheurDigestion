@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Ressources - SVT Digestion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F5F9FC 0%, #EBF4F9 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            color: #5A9AB8;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-medical {
+            width: 40px;
+            height: 40px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #A8D8EA 0%, #7FB5D1 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(90, 154, 184, 0.2);
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(90, 154, 184, 0.3);
+        }
+
+        .btn-add:active {
+            transform: translateY(0);
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.5s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            color: #5A9AB8;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0f2f7;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #5A9AB8;
+            box-shadow: 0 0 0 3px rgba(90, 154, 184, 0.1);
+        }
+
+        .resources-grid {
+            display: grid;
+            gap: 20px;
+            animation: fadeInUp 0.5s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .resource-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #5A9AB8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(90, 154, 184, 0.03) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(90, 154, 184, 0.15);
+        }
+
+        .resource-card:hover::before {
+            opacity: 1;
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .resource-title {
+            flex: 1;
+        }
+
+        .resource-title h3 {
+            color: #5A9AB8;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .resource-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .badge-level {
+            background: linear-gradient(135deg, #B8E6D5 0%, #9AD4C2 100%);
+            color: white;
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, #F5C6D6 0%, #E89BB0 100%);
+            color: white;
+        }
+
+        .badge-price {
+            background: linear-gradient(135deg, #F9E4AD 0%, #7FB5D1 100%);
+            color: white;
+        }
+
+        .resource-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #C8B9E8 0%, #A88DC7 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 141, 199, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #F5C6D6 0%, #E89BB0 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(232, 155, 176, 0.3);
+        }
+
+        .btn-link {
+            background: linear-gradient(135deg, #A8D8EA 0%, #5A9AB8 100%);
+            color: white;
+            padding: 8px 15px;
+        }
+
+        .btn-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(90, 154, 184, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.9) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #5A9AB8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .btn-close:hover {
+            background: #f0f0f0;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #5A9AB8;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0f2f7;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #5A9AB8;
+            box-shadow: 0 0 0 3px rgba(90, 154, 184, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: linear-gradient(135deg, #A8D8EA 0%, #5A9AB8 100%);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(90, 154, 184, 0.3);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: #f0f0f0;
+            color: #666;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .empty-state h3 {
+            color: #5A9AB8;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+        }
+
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(90, 154, 184, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.5s ease-out 0.1s both;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(90, 154, 184, 0.15);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #5A9AB8;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .resource-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <svg class="icon-medical" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 2L9 9L2 9L2 15L9 15L9 22L15 22L15 15L22 15L22 9L15 9L15 2L9 2Z" fill="#5A9AB8"/>
+                </svg>
+                Gestion des Ressources
+            </h1>
+            <button class="btn-add" onclick="openAddModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5V19M5 12H19" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                Ajouter une ressource
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalResources">0</div>
+                <div class="stat-label">Ressources totales</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalLevels">4</div>
+                <div class="stat-label">Niveaux</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalTypes">0</div>
+                <div class="stat-label">Types différents</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label>Filtrer par niveau</label>
+                <select id="filterLevel" onchange="filterResources()">
+                    <option value="">Tous les niveaux</option>
+                    <option value="1">LEVEL 1 - Stagiaire</option>
+                    <option value="2">LEVEL 2 - Interne</option>
+                    <option value="3">LEVEL 3 - Résident</option>
+                    <option value="4">LEVEL 4 - Spécialiste</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Filtrer par type</label>
+                <select id="filterType" onchange="filterResources()">
+                    <option value="">Tous les types</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Rechercher</label>
+                <input type="text" id="searchInput" placeholder="Titre ou description..." 
+                       style="width: 100%; padding: 10px 15px; border: 2px solid #e0f2f7; border-radius: 10px;"
+                       oninput="filterResources()">
+            </div>
+        </div>
+
+        <!-- Resources Grid -->
+        <div class="resources-grid" id="resourcesGrid"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="resourceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L12 22M2 12L22 12" stroke="#5A9AB8" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span id="modalTitle">Nouvelle ressource</span>
+                </h2>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="resourceForm">
+                <input type="hidden" id="resourceIndex">
+                
+                <div class="form-group">
+                    <label>Niveau *</label>
+                    <select id="resourceLevel" required>
+                        <option value="">Sélectionner un niveau</option>
+                        <option value="1">LEVEL 1 - Stagiaire</option>
+                        <option value="2">LEVEL 2 - Interne</option>
+                        <option value="3">LEVEL 3 - Résident</option>
+                        <option value="4">LEVEL 4 - Spécialiste</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Type *</label>
+                    <select id="resourceType" required>
+                        <option value="">Sélectionner un type</option>
+                        <option value="Observations">Observations</option>
+                        <option value="Livres">Livres</option>
+                        <option value="Dissections">Dissections</option>
+                        <option value="Expériences">Expériences</option>
+                        <option value="Analyses">Analyses</option>
+                        <option value="Doc Médical">Doc Médical</option>
+                        <option value="Synthèses">Synthèses</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Titre *</label>
+                    <input type="text" id="resourceTitle" required placeholder="Ex: Anatomie du système digestif">
+                </div>
+
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="resourceDescription" required placeholder="Description détaillée de la ressource..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Prix (€) *</label>
+                    <input type="number" id="resourcePrice" required min="0" placeholder="Ex: 50">
+                </div>
+
+                <div class="form-group">
+                    <label>Lien de la ressource</label>
+                    <input type="url" id="resourceLink" placeholder="https://...">
+                </div>
+
+                <div class="form-group">
+                    <label>Texte du lien</label>
+                    <input type="text" id="resourceLinkTitle" placeholder="Ex: Voir la ressource">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Storage pour les ressources
+        let resources = [];
+        let editingIndex = -1;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResources();
+            renderResources();
+            updateStats();
+            populateTypeFilter();
+        });
+
+        // Charger les ressources depuis localStorage
+        function loadResources() {
+            const stored = localStorage.getItem('medicalResources');
+            if (stored) {
+                resources = JSON.parse(stored);
+            } else {
+                // Ressources par défaut (exemples)
+                resources = [
+                    {
+                        level: '1',
+                        type: 'Observations',
+                        title: 'Observation de la langue',
+                        description: 'Étude détaillée de la surface linguale et identification des papilles gustatives',
+                        price: 0,
+                        link: 'https://example.com',
+                        linkTitle: 'Voir l\'observation'
+                    },
+                    {
+                        level: '1',
+                        type: 'Livres',
+                        title: 'Anatomie du système digestif',
+                        description: 'Ouvrage complet sur l\'anatomie et la physiologie de l\'appareil digestif',
+                        price: 30,
+                        link: '',
+                        linkTitle: ''
+                    },
+                    {
+                        level: '2',
+                        type: 'Dissections',
+                        title: 'Dissection de l\'estomac de porc',
+                        description: 'Étude comparative de l\'anatomie digestive porcine et humaine',
+                        price: 100,
+                        link: '',
+                        linkTitle: ''
+                    }
+                ];
+                saveResources();
+            }
+        }
+
+        // Sauvegarder les ressources
+        function saveResources() {
+            localStorage.setItem('medicalResources', JSON.stringify(resources));
+        }
+
+        // Rendre les ressources
+        function renderResources() {
+            const grid = document.getElementById('resourcesGrid');
+            const filterLevel = document.getElementById('filterLevel').value;
+            const filterType = document.getElementById('filterType').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = resources.filter(r => {
+                const matchLevel = !filterLevel || r.level === filterLevel;
+                const matchType = !filterType || r.type === filterType;
+                const matchSearch = !searchTerm || 
+                    r.title.toLowerCase().includes(searchTerm) || 
+                    r.description.toLowerCase().includes(searchTerm);
+                return matchLevel && matchType && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="#5A9AB8" opacity="0.3"/>
+                        </svg>
+                        <h3>Aucune ressource trouvée</h3>
+                        <p>Ajustez vos filtres ou ajoutez une nouvelle ressource</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map((resource, index) => {
+                const realIndex = resources.indexOf(resource);
+                return `
+                    <div class="resource-card" style="animation-delay: ${index * 0.05}s">
+                        <div class="resource-header">
+                            <div class="resource-title">
+                                <h3>${resource.title}</h3>
+                                <div class="resource-meta">
+                                    <span class="badge badge-level">LEVEL ${resource.level}</span>
+                                    <span class="badge badge-type">${resource.type}</span>
+                                    <span class="badge badge-price">${resource.price} €</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="resource-description">${resource.description}</p>
+                        ${resource.link ? `
+                            <button class="btn btn-link" onclick="window.open('${resource.link}', '_blank')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                ${resource.linkTitle || 'Voir la ressource'}
+                            </button>
+                        ` : ''}
+                        <div class="resource-actions">
+                            <button class="btn btn-edit" onclick="editResource(${realIndex})">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Modifier
+                            </button>
+                            <button class="btn btn-delete" onclick="deleteResource(${realIndex})">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filtrer les ressources
+        function filterResources() {
+            renderResources();
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            document.getElementById('totalResources').textContent = resources.length;
+            const types = new Set(resources.map(r => r.type));
+            document.getElementById('totalTypes').textContent = types.size;
+        }
+
+        // Peupler le filtre de types
+        function populateTypeFilter() {
+            const types = new Set(resources.map(r => r.type));
+            const select = document.getElementById('filterType');
+            select.innerHTML = '<option value="">Tous les types</option>';
+            [...types].sort().forEach(type => {
+                select.innerHTML += `<option value="${type}">${type}</option>`;
+            });
+        }
+
+        // Ouvrir le modal d'ajout
+        function openAddModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Nouvelle ressource';
+            document.getElementById('resourceForm').reset();
+            document.getElementById('resourceModal').classList.add('active');
+        }
+
+        // Éditer une ressource
+        function editResource(index) {
+            editingIndex = index;
+            const resource = resources[index];
+            
+            document.getElementById('modalTitle').textContent = 'Modifier la ressource';
+            document.getElementById('resourceLevel').value = resource.level;
+            document.getElementById('resourceType').value = resource.type;
+            document.getElementById('resourceTitle').value = resource.title;
+            document.getElementById('resourceDescription').value = resource.description;
+            document.getElementById('resourcePrice').value = resource.price;
+            document.getElementById('resourceLink').value = resource.link || '';
+            document.getElementById('resourceLinkTitle').value = resource.linkTitle || '';
+            
+            document.getElementById('resourceModal').classList.add('active');
+        }
+
+        // Supprimer une ressource
+        function deleteResource(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?')) {
+                resources.splice(index, 1);
+                saveResources();
+                renderResources();
+                updateStats();
+                populateTypeFilter();
+            }
+        }
+
+        // Fermer le modal
+        function closeModal() {
+            document.getElementById('resourceModal').classList.remove('active');
+        }
+
+        // Soumettre le formulaire
+        document.getElementById('resourceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const resource = {
+                level: document.getElementById('resourceLevel').value,
+                type: document.getElementById('resourceType').value,
+                title: document.getElementById('resourceTitle').value,
+                description: document.getElementById('resourceDescription').value,
+                price: parseInt(document.getElementById('resourcePrice').value),
+                link: document.getElementById('resourceLink').value,
+                linkTitle: document.getElementById('resourceLinkTitle').value
+            };
+
+            if (editingIndex >= 0) {
+                resources[editingIndex] = resource;
+            } else {
+                resources.push(resource);
+            }
+
+            saveResources();
+            closeModal();
+            renderResources();
+            updateStats();
+            populateTypeFilter();
+        });
+
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('resourceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
