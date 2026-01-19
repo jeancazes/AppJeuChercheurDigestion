@@ -4,17 +4,6 @@
   padding: 0;
 }
 
-<<<<<<< Updated upstream
-html, body {
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
-  background: #F8FCFF;
-  min-height: 100vh;
-}
-
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-=======
 body {
   font-family: 'Nunito', 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%);
@@ -49,18 +38,10 @@ body {
 
 .notification {
   animation: slideDown 0.3s ease-out;
->>>>>>> Stashed changes
 }
 
 button {
   font-family: inherit;
-<<<<<<< Updated upstream
-}
-
-input, select, textarea {
-  font-family: inherit;
-}
-=======
   cursor: pointer;
   border: none;
   transition: all 0.2s ease;
@@ -105,4 +86,3 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #0288D1;
 }
->>>>>>> Stashed changes

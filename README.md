@@ -1,112 +1,158 @@
-# Modification du bouton de réinitialisation - v7
+# 🔬 Le Laboratoire Fabuleux
 
-## 📋 Résumé de la modification
+**Serious Game pour l'enseignement de la digestion en SVT**
 
-Cette version ajoute la réinitialisation des noms des membres d'équipe lors de l'utilisation du bouton "Réinitialiser toutes les équipes".
+Un jeu éducatif permettant aux élèves de 5ème d'apprendre la digestion de manière ludique et interactive avec un thème médical.
 
-### ⚡ Changements effectués
-
-**Fichier modifié :** `lib/gameStore.js`
-
-**Fonctions modifiées :**
-1. `resetAllEquipes()` - Ligne ajoutée : `equipe.membres = [];`
-2. `resetClasseEquipes(classeId)` - Ligne ajoutée : `equipe.membres = [];`
-
-## 🔧 Installation
-
-### Option 1 : Remplacement complet du fichier
-
-1. Localisez le fichier `lib/gameStore.js` dans votre projet actuel
-2. Remplacez-le par le fichier `lib/gameStore.js` fourni dans ce dossier
-3. Testez l'application
-
-### Option 2 : Modification manuelle
-
-Si vous préférez modifier votre fichier existant :
-
-1. Ouvrez `lib/gameStore.js`
-2. Trouvez la fonction `resetAllEquipes` (vers la ligne 280-290)
-3. Ajoutez la ligne `equipe.membres = [];` après `equipe.purchasedResources = [];`
-4. Faites la même chose dans la fonction `resetClasseEquipes` (vers la ligne 295-310)
-
-**Avant :**
-```javascript
-resetAllEquipes: () => {
-  data.equipes.forEach(equipe => {
-    equipe.level = 1;
-    equipe.budget = 100;
-    equipe.reputation = 0;
-    equipe.reputationDecouvertes = 0;
-    equipe.reputationRaisonnement = 0;
-    equipe.purchasedResources = [];
-  });
-  notify();
-  return true;
-},
-```
-
-**Après :**
-```javascript
-resetAllEquipes: () => {
-  data.equipes.forEach(equipe => {
-    equipe.level = 1;
-    equipe.budget = 100;
-    equipe.reputation = 0;
-    equipe.reputationDecouvertes = 0;
-    equipe.reputationRaisonnement = 0;
-    equipe.purchasedResources = [];
-    equipe.membres = [];  // ← LIGNE AJOUTÉE
-  });
-  notify();
-  return true;
-},
-```
-
-## ✅ Test de la modification
-
-1. Lancez l'application enseignant
-2. Créez une classe et ajoutez des équipes avec des noms de membres
-3. Attribuez des points de réputation
-4. Cliquez sur le bouton "🔄 Réinitialiser toutes les équipes"
-5. Confirmez l'action
-6. Vérifiez que :
-   - Les équipes sont revenues au niveau 1
-   - Le budget est à 100€
-   - Les points de réputation sont à 0
-   - **Les noms des membres ont été effacés** ✨
+---
 
 ## 📁 Structure du projet
 
 ```
-laboratoire-fabuleux-v7/
+laboratoire-fabuleux/
+├── app/
+│   ├── layout.js          # Layout principal
+│   ├── globals.css         # Styles globaux
+│   ├── page.js             # Page d'accueil
+│   ├── eleve/
+│   │   └── page.js         # Application élève
+│   └── enseignant/
+│       └── page.js         # Application enseignant
 ├── lib/
-│   └── gameStore.js          ← Fichier principal modifié
-├── MODIFICATION_RESET.md     ← Documentation détaillée
-└── README.md                 ← Ce fichier
+│   └── gameStore.js        # Store de données partagé
+├── data/
+│   └── resources.csv       # Fichier CSV des ressources
+├── package.json
+├── next.config.js
+└── README.md
 ```
 
-## 🎯 Impact de la modification
+---
 
-### Comportement après réinitialisation
+## 🚀 Déploiement sur Vercel
 
-| Élément | Avant | Après modification |
-|---------|-------|-------------------|
-| Niveau | ✅ Réinitialisé à 1 | ✅ Réinitialisé à 1 |
-| Budget | ✅ Réinitialisé à 100€ | ✅ Réinitialisé à 100€ |
-| Réputation | ✅ Réinitialisé à 0 | ✅ Réinitialisé à 0 |
-| Ressources achetées | ✅ Effacées | ✅ Effacées |
-| **Noms des membres** | ❌ Conservés | **✅ Effacés** |
+### Méthode 1 : Via l'interface Vercel (recommandée)
 
-### Ce que les enseignants devront faire après une réinitialisation
+1. **Créez un compte Vercel** sur [vercel.com](https://vercel.com) si ce n'est pas déjà fait
 
-- Reconfigurer les noms des membres de chaque équipe
-- Les autres données (numéro d'équipe, classe) restent intactes
+2. **Uploadez le projet sur GitHub/GitLab/Bitbucket**
+   - Créez un nouveau repository
+   - Uploadez tous les fichiers du projet
 
-## 📞 Support
+3. **Connectez Vercel à votre repository**
+   - Allez sur [vercel.com/new](https://vercel.com/new)
+   - Cliquez sur "Import Project"
+   - Sélectionnez votre repository
+   - Vercel détectera automatiquement Next.js
 
-Pour toute question sur cette modification, référez-vous au fichier `MODIFICATION_RESET.md` qui contient des informations plus détaillées.
+4. **Déployez**
+   - Cliquez sur "Deploy"
+   - Attendez quelques minutes
+   - Votre site sera disponible à `https://votre-projet.vercel.app`
 
-## 🔄 Versions
+### Méthode 2 : Via la CLI Vercel
 
-- **v6** : Sans réinitialisation des membres
-- **v7** : Avec réinitialisation des membres (version actuelle)
+1. **Installez la CLI Vercel**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Connectez-vous**
+   ```bash
+   vercel login
+   ```
+
+3. **Déployez depuis le dossier du projet**
+   ```bash
+   cd laboratoire-fabuleux
+   vercel
+   ```
+
+4. **Pour un déploiement en production**
+   ```bash
+   vercel --prod
+   ```
+
+---
+
+## 🎮 Fonctionnalités
+
+### Espace Élève (`/eleve`)
+- Page d'accueil avec statistiques de l'équipe
+- Catalogue de ressources filtrable (41 ressources)
+- Système d'achat avec gestion du budget
+- Mes ressources achetées
+- Fiche d'équipe
+- Page d'aide avec les règles du jeu
+
+### Espace Enseignant (`/enseignant`)
+- Sélection de classe
+- Gestion des équipes
+- Attribution de points de réputation :
+  - 🔍 Points de Découverte
+  - 🧠 Points de Raisonnement
+- Synchronisation en temps réel
+
+### Système de progression
+| Niveau | Titre | Budget | Réputation requise |
+|--------|-------|--------|-------------------|
+| 1 | Stagiaire | 100€ | 0 pts |
+| 2 | Interne | 200€ | 5 pts |
+| 3 | Résident | 500€ | 10 pts |
+| 4 | Spécialiste | 1000€ | 15 pts |
+
+---
+
+## 🛠️ Développement local
+
+1. **Installez les dépendances**
+   ```bash
+   npm install
+   ```
+
+2. **Lancez le serveur de développement**
+   ```bash
+   npm run dev
+   ```
+
+3. **Ouvrez** [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 📝 Notes importantes
+
+- **Persistance des données** : Actuellement, les données sont stockées en mémoire. En production, il faudrait connecter à une base de données temps réel (Firebase, Supabase, etc.) pour une vraie synchronisation entre les appareils.
+
+- **Authentification** : Pas de système d'authentification pour le moment. À ajouter pour un usage en classe réel.
+
+- **Design responsive** : L'application est optimisée pour mobile, tablette et desktop.
+
+---
+
+## 🎨 Palette de couleurs
+
+- **Primaire** : #0288D1 (bleu médical)
+- **Primaire clair** : #4FC3F7
+- **Fond** : #E1F5FE → #B3E5FC
+- **Succès** : #4CAF50
+- **Avertissement** : #FF9800
+
+---
+
+## 📚 Ressources éducatives
+
+Le catalogue contient 41 ressources organisées en catégories :
+- Ressources anatomiques
+- Observations
+- Ressources historiques
+- Examens médicaux (vidéos)
+- Ressources expérimentales
+- Résultats d'analyses médicales
+- Ressources documentaires
+- Aides
+
+---
+
+## 📄 Licence
+
+Projet éducatif - © 2025
