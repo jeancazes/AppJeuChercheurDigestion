@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { getGameStore, COLORS, LEVEL_CONFIG } from '@/lib/gameStore';
 
 // ============================================
+// CODE PIN SECRET
+// ============================================
+const SECRET_CODE = '1447';
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_DURATION = 20 * 60 * 1000; // 20 minutes en millisecondes
+
+// ============================================
 // ICÔNE RETOUR
 // ============================================
 const BackIcon = (
@@ -14,9 +21,390 @@ const BackIcon = (
 );
 
 // ============================================
+// PAGE DE SAISIE DU CODE PIN
+// ============================================
+const PinCodePage = ({ onSuccess, onBack }) => {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutEndTime, setLockoutEndTime] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(0);
+
+  // Vérifier le verrouillage au chargement
+  useEffect(() => {
+    const storedLockout = localStorage.getItem('teacherLockout');
+    const storedAttempts = localStorage.getItem('teacherAttempts');
+    
+    if (storedLockout) {
+      const lockoutTime = parseInt(storedLockout);
+      if (Date.now() < lockoutTime) {
+        setIsLocked(true);
+        setLockoutEndTime(lockoutTime);
+      } else {
+        // Le verrouillage a expiré
+        localStorage.removeItem('teacherLockout');
+        localStorage.removeItem('teacherAttempts');
+      }
+    }
+    
+    if (storedAttempts) {
+      setAttempts(parseInt(storedAttempts));
+    }
+  }, []);
+
+  // Timer pour le compte à rebours du verrouillage
+  useEffect(() => {
+    if (!isLocked || !lockoutEndTime) return;
+
+    const updateTimer = () => {
+      const remaining = lockoutEndTime - Date.now();
+      if (remaining <= 0) {
+        setIsLocked(false);
+        setLockoutEndTime(null);
+        setAttempts(0);
+        localStorage.removeItem('teacherLockout');
+        localStorage.removeItem('teacherAttempts');
+      } else {
+        setRemainingTime(remaining);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [isLocked, lockoutEndTime]);
+
+  const formatTime = (ms) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleKeyPress = (digit) => {
+    if (isLocked) return;
+    if (code.length < 4) {
+      const newCode = code + digit;
+      setCode(newCode);
+      setError('');
+
+      // Vérifier automatiquement quand 4 chiffres sont entrés
+      if (newCode.length === 4) {
+        setTimeout(() => {
+          if (newCode === SECRET_CODE) {
+            // Succès !
+            localStorage.removeItem('teacherAttempts');
+            onSuccess();
+          } else {
+            // Échec
+            const newAttempts = attempts + 1;
+            setAttempts(newAttempts);
+            localStorage.setItem('teacherAttempts', newAttempts.toString());
+
+            if (newAttempts >= MAX_ATTEMPTS) {
+              // Verrouillage
+              const lockoutTime = Date.now() + LOCKOUT_DURATION;
+              setIsLocked(true);
+              setLockoutEndTime(lockoutTime);
+              localStorage.setItem('teacherLockout', lockoutTime.toString());
+              setError('Trop de tentatives ! Accès bloqué.');
+            } else {
+              setError(`Code incorrect. ${MAX_ATTEMPTS - newAttempts} essai${MAX_ATTEMPTS - newAttempts > 1 ? 's' : ''} restant${MAX_ATTEMPTS - newAttempts > 1 ? 's' : ''}.`);
+            }
+            setCode('');
+          }
+        }, 200);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (isLocked) return;
+    setCode(code.slice(0, -1));
+    setError('');
+  };
+
+  const handleClear = () => {
+    if (isLocked) return;
+    setCode('');
+    setError('');
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: isLocked 
+        ? 'linear-gradient(180deg, #FFEBEE 0%, #FFCDD2 100%)'
+        : `linear-gradient(180deg, ${COLORS.background} 0%, ${COLORS.secondary} 100%)`,
+      padding: '20px',
+      transition: 'background 0.5s ease',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px' }}>
+        <button onClick={onBack} style={{
+          background: 'none',
+          border: 'none',
+          padding: '8px',
+          cursor: 'pointer',
+          color: isLocked ? '#C62828' : COLORS.primary,
+        }}>
+          {BackIcon}
+        </button>
+        <h1 style={{ 
+          color: isLocked ? '#C62828' : COLORS.primaryDark, 
+          fontSize: '1.3rem', 
+          fontWeight: '800' 
+        }}>
+          Espace Enseignant
+        </h1>
+      </div>
+
+      {/* Contenu principal */}
+      <div style={{ maxWidth: '320px', margin: '0 auto', textAlign: 'center' }}>
+        {/* Icône cadenas */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          margin: '0 auto 20px',
+          background: isLocked 
+            ? 'linear-gradient(135deg, #C62828 0%, #E53935 100%)'
+            : `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+          borderRadius: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: isLocked 
+            ? '0 10px 30px rgba(198, 40, 40, 0.3)'
+            : `0 10px 30px ${COLORS.cardShadow}`,
+          transition: 'all 0.3s ease',
+        }}>
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+            <rect x="20" y="45" width="60" height="45" rx="8" stroke="white" strokeWidth="6" fill="none"/>
+            <path d="M30 45 L30 30 Q30 10 50 10 Q70 10 70 30 L70 45" stroke="white" strokeWidth="6" fill="none"/>
+            {!isLocked && <circle cx="50" cy="65" r="8" fill="white"/>}
+            {isLocked && (
+              <path d="M40 60 L60 75 M60 60 L40 75" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+            )}
+          </svg>
+        </div>
+
+        <h2 style={{ 
+          color: isLocked ? '#C62828' : COLORS.primaryDark, 
+          fontSize: '1.2rem', 
+          fontWeight: '700',
+          marginBottom: '8px',
+        }}>
+          {isLocked ? 'Accès Bloqué' : 'Entrez le code'}
+        </h2>
+
+        {isLocked ? (
+          <div style={{
+            background: '#C62828',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '16px',
+            marginBottom: '20px',
+          }}>
+            <p style={{ fontSize: '0.95rem', marginBottom: '12px' }}>
+              ⛔ Trop de tentatives incorrectes.
+            </p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+              Réessayez dans
+            </p>
+            <p style={{ fontSize: '2rem', fontWeight: '800', marginTop: '8px' }}>
+              {formatTime(remainingTime)}
+            </p>
+          </div>
+        ) : (
+          <>
+            <p style={{ color: COLORS.textLight, fontSize: '0.9rem', marginBottom: '24px' }}>
+              Code à 4 chiffres requis
+            </p>
+
+            {/* Affichage du code (points) */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '16px',
+              marginBottom: '24px',
+            }}>
+              {[0, 1, 2, 3].map(i => (
+                <div
+                  key={i}
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: i < code.length ? COLORS.primary : COLORS.cardBorder,
+                    transition: 'all 0.2s ease',
+                    transform: i < code.length ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Message d'erreur */}
+            {error && (
+              <div style={{
+                background: '#FFEBEE',
+                color: '#C62828',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                border: '2px solid #FFCDD2',
+              }}>
+                ⚠️ {error}
+              </div>
+            )}
+
+            {/* Clavier numérique */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px',
+              marginBottom: '16px',
+            }}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(digit => (
+                <button
+                  key={digit}
+                  onClick={() => handleKeyPress(digit.toString())}
+                  style={{
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '50%',
+                    border: `3px solid ${COLORS.cardBorder}`,
+                    background: COLORS.white,
+                    fontSize: '1.8rem',
+                    fontWeight: '700',
+                    color: COLORS.primaryDark,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
+                    margin: '0 auto',
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.95)';
+                    e.currentTarget.style.background = COLORS.secondary;
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.background = COLORS.white;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.background = COLORS.white;
+                  }}
+                >
+                  {digit}
+                </button>
+              ))}
+            </div>
+
+            {/* Ligne du bas : Effacer, 0, Supprimer */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px',
+            }}>
+              <button
+                onClick={handleClear}
+                style={{
+                  width: '70px',
+                  height: '70px',
+                  borderRadius: '50%',
+                  border: `3px solid #FFCDD2`,
+                  background: '#FFEBEE',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  color: '#C62828',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  margin: '0 auto',
+                }}
+              >
+                Effacer
+              </button>
+              <button
+                onClick={() => handleKeyPress('0')}
+                style={{
+                  width: '70px',
+                  height: '70px',
+                  borderRadius: '50%',
+                  border: `3px solid ${COLORS.cardBorder}`,
+                  background: COLORS.white,
+                  fontSize: '1.8rem',
+                  fontWeight: '700',
+                  color: COLORS.primaryDark,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
+                  margin: '0 auto',
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.95)';
+                  e.currentTarget.style.background = COLORS.secondary;
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = COLORS.white;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = COLORS.white;
+                }}
+              >
+                0
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  width: '70px',
+                  height: '70px',
+                  borderRadius: '50%',
+                  border: `3px solid ${COLORS.cardBorder}`,
+                  background: COLORS.white,
+                  fontSize: '1.2rem',
+                  fontWeight: '700',
+                  color: COLORS.textLight,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  margin: '0 auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+                  <path d="M85 25 L85 75 L40 75 L15 50 L40 25 Z" stroke="currentColor" strokeWidth="6" fill="none" strokeLinejoin="round"/>
+                  <path d="M55 40 L70 55 M70 40 L55 55" stroke="currentColor" strokeWidth="5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Indication tentatives restantes */}
+        {!isLocked && attempts > 0 && (
+          <p style={{ 
+            color: '#FF9800', 
+            fontSize: '0.8rem', 
+            marginTop: '20px',
+            fontWeight: '600',
+          }}>
+            ⚠️ {MAX_ATTEMPTS - attempts} tentative{MAX_ATTEMPTS - attempts > 1 ? 's' : ''} restante{MAX_ATTEMPTS - attempts > 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // PAGE SÉLECTION DE CLASSE
 // ============================================
-const ClassSelectionPage = ({ onSelectClass }) => {
+const ClassSelectionPage = ({ onSelectClass, onLogout }) => {
   const gameStore = getGameStore();
   const classes = gameStore.getClasses();
 
@@ -27,39 +415,53 @@ const ClassSelectionPage = ({ onSelectClass }) => {
       padding: '20px',
     }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '30px', paddingTop: '20px' }}>
-        <div style={{
-          width: '80px',
-          height: '80px',
-          margin: '0 auto 16px',
-          background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
-          borderRadius: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: `0 10px 30px ${COLORS.cardShadow}`,
-        }}>
-          <svg width="45" height="45" viewBox="0 0 100 100" fill="none">
-            <rect x="15" y="25" width="70" height="50" rx="5" fill="white"/>
-            <rect x="25" y="35" width="30" height="4" rx="2" fill={COLORS.primaryLight}/>
-            <rect x="25" y="45" width="50" height="3" rx="1.5" fill="#B3E5FC"/>
-            <rect x="25" y="53" width="40" height="3" rx="1.5" fill="#B3E5FC"/>
-            <rect x="25" y="61" width="45" height="3" rx="1.5" fill="#B3E5FC"/>
-            <circle cx="70" cy="40" r="12" fill={COLORS.primaryLight}/>
-            <path d="M66 40 L69 43 L75 37" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', paddingTop: '10px' }}>
+        <div style={{ width: '80px' }}></div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '70px',
+            height: '70px',
+            margin: '0 auto 12px',
+            background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: `0 10px 30px ${COLORS.cardShadow}`,
+          }}>
+            <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+              <rect x="15" y="25" width="70" height="50" rx="5" fill="white"/>
+              <rect x="25" y="35" width="30" height="4" rx="2" fill={COLORS.primaryLight}/>
+              <rect x="25" y="45" width="50" height="3" rx="1.5" fill="#B3E5FC"/>
+              <rect x="25" y="53" width="40" height="3" rx="1.5" fill="#B3E5FC"/>
+              <circle cx="70" cy="40" r="12" fill={COLORS.primaryLight}/>
+              <path d="M66 40 L69 43 L75 37" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h1 style={{
+            fontFamily: "'Fredoka One', cursive",
+            fontSize: '1.5rem',
+            color: COLORS.primaryDark,
+          }}>
+            Espace Enseignant
+          </h1>
+          <p style={{ color: COLORS.textLight, fontSize: '0.9rem' }}>
+            Sélectionnez une classe
+          </p>
         </div>
-        <h1 style={{
-          fontFamily: "'Fredoka One', cursive",
-          fontSize: '1.8rem',
-          color: COLORS.primaryDark,
-          marginBottom: '8px',
-        }}>
-          Espace Enseignant
-        </h1>
-        <p style={{ color: COLORS.textLight, fontSize: '0.95rem' }}>
-          Sélectionnez une classe pour gérer les équipes
-        </p>
+        <button
+          onClick={onLogout}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: COLORS.textLight,
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            padding: '8px',
+          }}
+        >
+          🔒<br/>Déconnexion
+        </button>
       </div>
 
       {/* Liste des classes */}
@@ -133,7 +535,6 @@ const EquipeCard = ({ equipe, onAddRep, onRemoveRep }) => {
     ? ((equipe.reputation - levelInfo.repRequired) / (nextLevel.repRequired - levelInfo.repRequired)) * 100
     : 100;
 
-  // Abréger les noms
   const shortenName = (name) => {
     const parts = name.split(' ');
     if (parts.length >= 2) {
@@ -504,7 +905,31 @@ const TeamManagementPage = ({ classe, onBack }) => {
 // APPLICATION PRINCIPALE
 // ============================================
 export default function TeacherApp() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setSelectedClass(null);
+  };
+
+  // Écran de code PIN
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        maxWidth: '500px',
+        margin: '0 auto',
+        minHeight: '100vh',
+        fontFamily: "'Nunito', 'Segoe UI', sans-serif",
+        boxShadow: '0 0 60px rgba(0,0,0,0.1)',
+      }}>
+        <PinCodePage 
+          onSuccess={() => setIsAuthenticated(true)} 
+          onBack={() => window.location.href = '/'}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -521,7 +946,10 @@ export default function TeacherApp() {
           onBack={() => setSelectedClass(null)}
         />
       ) : (
-        <ClassSelectionPage onSelectClass={setSelectedClass} />
+        <ClassSelectionPage 
+          onSelectClass={setSelectedClass} 
+          onLogout={handleLogout}
+        />
       )}
     </div>
   );
