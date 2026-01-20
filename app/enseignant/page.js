@@ -428,6 +428,8 @@ function ModuleEquipes({ showNotification }) {
   const [editingEquipe, setEditingEquipe] = useState(null);
   const [formData, setFormData] = useState({ numero: '', membres: [''] });
   const [loading, setLoading] = useState(false);
+  const [showResources, setShowResources] = useState(null); // ID de l'équipe dont on affiche les ressources
+  const [levelAnimations, setLevelAnimations] = useState({}); // Pour les animations de niveau
 
   useEffect(() => {
     loadData();
@@ -515,13 +517,35 @@ function ModuleEquipes({ showNotification }) {
   };
 
   const addReputation = async (equipe, type) => {
+    const oldLevel = equipe.level;
     await gameStore.addReputation(equipe.id, type, 1);
-    showNotification('✅ +1 point ajouté');
+    
+    // Vérifier si le niveau a changé
+    const updatedEquipe = gameStore.getEquipe(equipe.id);
+    if (updatedEquipe && updatedEquipe.level > oldLevel) {
+      setLevelAnimations({ ...levelAnimations, [equipe.id]: true });
+      showNotification(`🎉 Niveau ${updatedEquipe.level} atteint !`);
+      setTimeout(() => {
+        setLevelAnimations({ ...levelAnimations, [equipe.id]: false });
+      }, 2000);
+    } else {
+      showNotification('✅ +1 point ajouté');
+    }
   };
 
   const removeReputation = async (equipe, type) => {
     await gameStore.removeReputation(equipe.id, type, 1);
     showNotification('✅ -1 point retiré');
+  };
+
+  const addBudget = async (equipe, amount) => {
+    const newBudget = equipe.budget + amount;
+    await gameStore.updateEquipe(equipe.id, { budget: newBudget });
+    showNotification(`✅ ${amount > 0 ? '+' : ''}${amount}€`);
+  };
+
+  const showResourcesModal = (equipeId) => {
+    setShowResources(equipeId);
   };
 
   if (!selectedClasse) {
@@ -575,24 +599,73 @@ function ModuleEquipes({ showNotification }) {
                 <td style={styles.td}>{equipe.numero}</td>
                 <td style={styles.td}>{equipe.membres.join(', ')}</td>
                 <td style={styles.td}>
-                  <span style={styles.badge}>{LEVEL_CONFIG[equipe.level]?.title || `Level ${equipe.level}`}</span>
+                  <span style={{
+                    ...styles.badge,
+                    animation: levelAnimations[equipe.id] ? 'levelUp 0.6s ease-out' : 'none',
+                  }}>
+                    {LEVEL_CONFIG[equipe.level]?.title || `Level ${equipe.level}`}
+                  </span>
                 </td>
-                <td style={styles.td}>{equipe.budget}€</td>
+                <td style={styles.td}>
+                  <div style={styles.budgetControl}>
+                    <button 
+                      style={styles.budgetButton} 
+                      onClick={() => addBudget(equipe, -10)}
+                      disabled={equipe.budget < 10}
+                    >
+                      -10
+                    </button>
+                    <span style={styles.budgetValue}>{equipe.budget}€</span>
+                    <button 
+                      style={styles.budgetButton} 
+                      onClick={() => addBudget(equipe, 10)}
+                    >
+                      +10
+                    </button>
+                  </div>
+                </td>
                 <td style={styles.td}>
                   <div style={styles.pointsControl}>
-                    <button style={styles.miniButton} onClick={() => removeReputation(equipe, 'decouvertes')}>-</button>
+                    <button 
+                      style={styles.pointsButton} 
+                      onClick={() => removeReputation(equipe, 'decouvertes')}
+                    >
+                      −
+                    </button>
                     <span style={styles.pointsValue}>{equipe.reputationDecouvertes}</span>
-                    <button style={styles.miniButton} onClick={() => addReputation(equipe, 'decouvertes')}>+</button>
+                    <button 
+                      style={styles.pointsButton} 
+                      onClick={() => addReputation(equipe, 'decouvertes')}
+                    >
+                      +
+                    </button>
                   </div>
                 </td>
                 <td style={styles.td}>
                   <div style={styles.pointsControl}>
-                    <button style={styles.miniButton} onClick={() => removeReputation(equipe, 'raisonnement')}>-</button>
+                    <button 
+                      style={styles.pointsButton} 
+                      onClick={() => removeReputation(equipe, 'raisonnement')}
+                    >
+                      −
+                    </button>
                     <span style={styles.pointsValue}>{equipe.reputationRaisonnement}</span>
-                    <button style={styles.miniButton} onClick={() => addReputation(equipe, 'raisonnement')}>+</button>
+                    <button 
+                      style={styles.pointsButton} 
+                      onClick={() => addReputation(equipe, 'raisonnement')}
+                    >
+                      +
+                    </button>
                   </div>
                 </td>
                 <td style={styles.td}>
+                  <button 
+                    style={styles.resourceButton} 
+                    onClick={() => showResourcesModal(equipe.id)}
+                    title="Voir les ressources acquises"
+                  >
+                    {Icons.resource}
+                  </button>
                   <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
                     {Icons.edit}
                   </button>
@@ -606,6 +679,7 @@ function ModuleEquipes({ showNotification }) {
         </table>
       </div>
 
+      {/* Modale d'édition équipe */}
       {showModal && (
         <Modal onClose={() => setShowModal(false)} title={editingEquipe ? 'Modifier l\'équipe' : 'Nouvelle équipe'}>
           <div style={styles.formGroup}>
@@ -648,6 +722,52 @@ function ModuleEquipes({ showNotification }) {
             ))}
             <button
               style={styles.addMemberButton}
+              onClick={() => setFormData({ ...formData, membres: [...formData.membres, ''] })}
+            >
+              + Ajouter un membre
+            </button>
+          </div>
+
+          <div style={styles.modalActions}>
+            <button style={styles.cancelButton} onClick={() => setShowModal(false)}>
+              Annuler
+            </button>
+            <button style={styles.saveButton} onClick={handleSave}>
+              {Icons.check} Enregistrer
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modale ressources acquises */}
+      {showResources && (
+        <ResourcesModal 
+          equipeId={showResources}
+          onClose={() => setShowResources(null)}
+          gameStore={gameStore}
+        />
+      )}
+
+      <style>{`
+        @keyframes levelUp {
+          0% {
+            transform: scale(1);
+            background: ${COLORS.primary};
+          }
+          50% {
+            transform: scale(1.3);
+            background: ${COLORS.success};
+            box-shadow: 0 0 20px ${COLORS.success};
+          }
+          100% {
+            transform: scale(1);
+            background: ${COLORS.primary};
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
               onClick={() => setFormData({ ...formData, membres: [...formData.membres, ''] })}
             >
               + Ajouter un membre
@@ -984,6 +1104,110 @@ function Modal({ children, onClose, title }) {
 }
 
 // ============================================
+// COMPOSANT : MODALE RESSOURCES ACQUISES
+// ============================================
+function ResourcesModal({ equipeId, onClose, gameStore }) {
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadResources = () => {
+      const equipe = gameStore.getEquipe(equipeId);
+      if (!equipe) {
+        setLoading(false);
+        return;
+      }
+
+      const allResources = gameStore.getResources();
+      const purchasedIds = equipe.purchasedResources || [];
+      const purchased = allResources.filter(r => purchasedIds.includes(r.id));
+      
+      setResources(purchased);
+      setLoading(false);
+    };
+
+    loadResources();
+  }, [equipeId, gameStore]);
+
+  const totalCost = resources.reduce((sum, r) => sum + r.price, 0);
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={{ ...styles.modalContent, maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h3 style={styles.modalTitle}>📦 Ressources Acquises</h3>
+          <button style={styles.closeButton} onClick={onClose}>
+            {Icons.close}
+          </button>
+        </div>
+        <div style={styles.modalBody}>
+          {loading && <p style={{ textAlign: 'center', color: COLORS.textLight }}>Chargement...</p>}
+          
+          {!loading && resources.length === 0 && (
+            <p style={{ textAlign: 'center', color: COLORS.textLight, padding: '40px' }}>
+              Aucune ressource achetée pour le moment
+            </p>
+          )}
+
+          {!loading && resources.length > 0 && (
+            <>
+              <div style={{ marginBottom: '20px', textAlign: 'right' }}>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', color: COLORS.primary }}>
+                  Total dépensé : {totalCost}€
+                </span>
+              </div>
+
+              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                {resources.map(resource => (
+                  <div key={resource.id} style={styles.resourceItem}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <span style={styles.resourceId}>{resource.id}</span>
+                        <h4 style={{ color: COLORS.primaryDark, fontSize: '16px', fontWeight: 'bold', margin: 0 }}>
+                          {resource.title}
+                        </h4>
+                      </div>
+                      
+                      <p style={{ color: COLORS.textLight, fontSize: '14px', margin: '5px 0' }}>
+                        {resource.description}
+                      </p>
+                      
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '8px' }}>
+                        <span style={styles.resourceType}>{resource.type}</span>
+                        <span style={styles.resourceLevel}>Level {resource.level}</span>
+                        {resource.inClass && (
+                          <span style={styles.resourceInClass}>En classe</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: COLORS.primary }}>
+                        {resource.price}€
+                      </div>
+                      {resource.link && (
+                        <a 
+                          href={resource.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ fontSize: '12px', color: COLORS.primary, textDecoration: 'none' }}
+                        >
+                          {Icons.link} Lien
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // STYLES
 // ============================================
 const styles = {
@@ -1286,27 +1510,116 @@ const styles = {
   },
 
   // Points control
+  // Points control (plus gros boutons pour mobile)
   pointsControl: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
   },
-  miniButton: {
+  pointsButton: {
     background: COLORS.primary,
     color: COLORS.white,
     border: 'none',
-    borderRadius: '4px',
-    width: '24px',
-    height: '24px',
+    borderRadius: '8px',
+    width: '40px',
+    height: '40px',
+    cursor: 'pointer',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+    touchAction: 'manipulation', // Meilleur pour mobile
+  },
+  pointsValue: {
+    minWidth: '40px',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: '18px',
+  },
+
+  // Budget control
+  budgetControl: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  budgetButton: {
+    background: COLORS.success,
+    color: COLORS.white,
+    border: 'none',
+    borderRadius: '8px',
+    padding: '8px 12px',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 'bold',
+    transition: 'all 0.2s',
+    touchAction: 'manipulation',
   },
-  pointsValue: {
-    minWidth: '30px',
+  budgetValue: {
+    minWidth: '60px',
     textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: '16px',
   },
+
+  // Resource button
+  resourceButton: {
+    background: COLORS.secondary,
+    color: COLORS.primary,
+    border: `2px solid ${COLORS.primary}`,
+    borderRadius: '6px',
+    padding: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    marginRight: '4px',
+  },
+
+  // Resource modal items
+  resourceItem: {
+    background: COLORS.white,
+    border: `2px solid ${COLORS.cardBorder}`,
+    borderRadius: '12px',
+    padding: '16px',
+    marginBottom: '12px',
+    display: 'flex',
+    gap: '16px',
+    alignItems: 'flex-start',
+    transition: 'all 0.2s',
+  },
+  resourceId: {
+    background: COLORS.secondary,
+    color: COLORS.primary,
+    padding: '4px 8px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+  resourceType: {
+    background: COLORS.background,
+    color: COLORS.text,
+    padding: '4px 8px',
+    borderRadius: '6px',
+    fontSize: '12px',
+  },
+  resourceLevel: {
+    background: COLORS.primary,
+    color: COLORS.white,
+    padding: '4px 8px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+  resourceInClass: {
+    background: COLORS.warning,
+    color: COLORS.white,
+    padding: '4px 8px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+
 
   // Modal
   modalOverlay: {
