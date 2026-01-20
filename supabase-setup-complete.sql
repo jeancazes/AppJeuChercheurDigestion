@@ -1,5 +1,5 @@
 -- ============================================
--- SUPABASE SETUP COMPLET
+-- SUPABASE SETUP COMPLET - VERSION CORRIGÉE
 -- Le Laboratoire Fabuleux - Version Production
 -- ============================================
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS teams (
 -- 3. TABLE RESOURCES (RESSOURCES ÉDUCATIVES)
 -- ============================================
 CREATE TABLE IF NOT EXISTS resources (
-  id TEXT PRIMARY KEY, -- 'r1', 'r2', etc.
+  id TEXT PRIMARY KEY,
   level INTEGER NOT NULL CHECK (level >= 1 AND level <= 4),
   type TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -122,12 +122,12 @@ CREATE POLICY "Enable all access for purchased_resources" ON purchased_resources
 -- INSERTION DES RESSOURCES PAR DÉFAUT
 -- ============================================
 
--- Supprimer les ressources existantes si on réinitialise
-TRUNCATE resources CASCADE;
+-- Supprimer les ressources existantes (plus sûr que TRUNCATE)
+DELETE FROM purchased_resources;
+DELETE FROM resources;
 
 -- Insérer toutes les ressources du catalogue
 INSERT INTO resources (id, level, type, title, description, price, link, in_class) VALUES
--- Niveau 2 - Examens médicaux (vidéos)
 ('r1', 2, 'examens médicaux (vidéos)', 'Vidéo de déglutition - radiographie', 'On observe une personne qui mâche et avale aux rayons X (radiographie)', 50, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/X-ray_%20Swallow.flv', false),
 ('r2', 2, 'examens médicaux (vidéos)', 'Vidéo de déglutition - endoscopie', 'Une caméra descend dans le pharynx, on observe la déglutition. + modèle explicatif', 50, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/Video-Radiographie-Deglutition.avi', false),
 ('r3', 2, 'examens médicaux (vidéos)', 'Endoscopie de la partie supérieure du système digestif', 'Une caméra descend dans le tube digestif, on observe la partie supérieure du système digestif.', 50, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/Video-Endoscopie-SortieduDuodenumEstomacOesophage.flv', false),
@@ -136,42 +136,28 @@ INSERT INTO resources (id, level, type, title, description, price, link, in_clas
 ('r6', 2, 'examens médicaux (vidéos)', 'Divers examens de l''intestin grêle', 'Extrait de vidéo documentaire sur l''intestin grêle.', 100, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/IntestinGrele.flv', false),
 ('r7', 2, 'examens médicaux (vidéos)', 'Divers examens du gros intestin', 'Extrait de vidéo documentaire sur le colon', 100, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/GrosIntestin.flv', false),
 ('r8', 2, 'examens médicaux (vidéos)', 'Divers examens au niveau de la bouche', 'Extrait de vidéo documentaire sur la bouche', 100, 'https://lelaboratoirefabuleux.com/SeriousGame/DigestionRessources/Videos/Video-Bouche.flv', false),
-
--- Niveau 1 - Ressources anatomiques
 ('r9', 1, 'Ressources anatomique', 'Modèle anatomique 3D', 'Un site pour l''anatomie humaine en 3D', 50, 'https://zygotebody.com/', false),
 ('r10', 1, 'Ressources anatomique', 'AIDE 3D : Système digestif', 'aide : que le système digestif', 200, 'https://human.biodigital.com/widget?be=qlw&ui-annotations=true&ui-dissect=true&ui-xray=true&uaid=1gm9u', false),
-('r11', 1, 'Ressources anatomique', 'AIDE 3D : Bile Pancréas', 'aide : "pour mieux comprendre le trajet de la bile et des sucs pancréatiques"', 200, 'https://human.biodigital.com/widget?be=qlw&ui-annotations=true&ui-dissect=true&ui-xray=true&uaid=1gm9u', false),
+('r11', 1, 'Ressources anatomique', 'AIDE 3D : Bile Pancréas', 'aide : pour mieux comprendre le trajet de la bile et des sucs pancréatiques', 200, 'https://human.biodigital.com/widget?be=qlw&ui-annotations=true&ui-dissect=true&ui-xray=true&uaid=1gm9u', false),
 ('r12', 1, 'Ressources anatomique', 'Modèle anatomique (plastique)', 'Utiliser le modèle en plastique présent dans la salle', 20, '', true),
 ('r13', 1, 'Ressources anatomique', 'Squelette', 'Utiliser le squelette présent dans la salle', 20, '', true),
-
--- Niveau 1 - Ressources pour observations
 ('r14', 1, 'Ressources pour observations', 'Microscope et préparations microscopiques', 'Microscope et préparations microscopiques (lames minces) pour l''observation de diverses parties du corps (peau, foie, pancréas, intestins, …)', 70, '', true),
 ('r15', 1, 'Ressources pour observations', 'Loupes binoculaires', '', 50, '', true),
 ('r16', 1, 'Ressources pour observations', 'Dissection (poulet, lapin, …)', 'Attention une requête doit être formulée une semaine avant …', 150, 'https://tube-sciences-technologies.apps.education.fr/w/cSTMHDW3XVuPbp2fLvj8zH', false),
 ('r17', 1, 'Ressources pour observations', 'Observation de selles animales', 'Photographie commentée de comparaisons de selles animales', 20, 'https://drive.google.com/file/d/18T_L__BbwAa7huC0I7XsAkPOvBDo2vqi/view?usp=sharing', false),
 ('r18', 2, 'Ressources pour observations', 'Lames minces de bactéries de la flore intestinales (microbiote)', 'Frottis de contenu intestinal coloré pour détecter les Bactéries', 100, '', true),
-
--- Niveau 1 - Ressources historiques
 ('r19', 1, 'Ressources historiques', 'Expériences historiques Réaumur, Spallanzani, Beaumont', 'Un fichier regroupant des expériences historiques sur la digestion (contexte, expériences, résultats obtenus …)', 70, 'https://www.pedagogie.ac-nantes.fr/medias/fichier/experiences_1459779287861-pdf?INLINE=FALSE', false),
-
--- Niveau 2 - Ressources expérimentales
 ('r20', 2, 'Ressources expérimentales', 'Protocole + kit Digestion in-vitro', 'Du matériel et une fiche permettant de faire une expérience de digestion in-vitro. ** A demander une semaine avant **', 150, '', true),
 ('r21', 2, 'Ressources expérimentales', 'Résultats de dissection de système digestif', 'Un site où vous retrouverez des photos commentées des étapes de la dissection d''une souris.', 200, 'https://echapot.wixsite.com/svtaubrac/copie-de-la-digestion', false),
 ('r22', 2, 'Ressources expérimentales', 'Expérience de digestion par des micro-organismes', 'Du matériel et une fiche permettant de faire une expérience où des micro-organismes digèrent des aliments.', 150, '', true),
-
--- Niveau 3 - Résultats d'analyses médicales
 ('r23', 3, 'Résultats d''analyses médicales', 'Pack d''analyses : analyse d''urine et analyse de sang', 'Des documents relatant les résultats d''analyse de sang et d''analyses d''urine - un tableau comparatif peut être imprimé', 50, 'https://drive.google.com/file/d/1sBl1LLbC_BhH-ZOyGP008mBh8n5klUtD/view?usp=sharing', false),
 ('r24', 2, 'Résultats d''analyses médicales', 'Analyse des liquides (eau minérale, jus de fruit, ...)', 'Différentes étiquettes de composition de boissons.', 20, 'https://drive.google.com/file/d/1sVQvDo0hxTbQ_zeJlJB37IB-j3tgyuVI/view?usp=sharing', false),
 ('r25', 3, 'Résultats d''analyses médicales', 'Comparaison de la concentration en sucre avant et après l''intestin grêle', 'Résultat d''expérience et graphique', 100, 'https://drive.google.com/file/d/0Bzssu-9nqRWyNDlWRVlZS2xjc2c/view?usp=sharing&resourcekey=0-AWgsNgAwurPIEkMdoQeW7Q', false),
 ('r26', 3, 'Résultats d''analyses médicales', 'Mesure chimique des quantités de nutriments tout le long du tube digestif', 'Schéma d''interprétation de résultats', 300, '', true),
 ('r27', 2, 'Résultats d''analyses médicales', 'Analyse de la composition des aliments', 'Différentes étiquettes de composition d''aliments.', 20, 'http://www.lanutrition.fr/les-aliments-a-la-loupe.html?layout=advanced', false),
-
--- Niveau 1 - Ressources documentaires
 ('r28', 1, 'Ressources documentaires', 'Articles de presse sur les selles', 'Un article grand public qui permet de tester sa santé en observant l''état de ses selles.', 10, 'https://www.livi.fr/en-bonne-sante/selles/', false),
 ('r29', 1, 'Ressources documentaires', 'Analyse de composition des aliments', 'L''analyse des étiquettes alimentaires devrait permettre de trouver de quoi sont composé les aliments ou quels sont les 7 nutriments.', 10, '', true),
 ('r30', 4, 'Ressources documentaires', 'Recherche documentaire (livre, internet, …)', 'Sur la fiche de requête, le sujet de recherche doit être très précis et différent du problème à résoudre.', 300, 'https://www.ecosia.org/?c=fr', false),
-
--- Niveau 2 - Aides
 ('r31', 2, 'Aides', 'Rappel sur les surfaces d''échanges', 'Vous regardez dans vos anciens cours pour vous souvenir ce qu''est une surface d''échanges.', 10, '', true),
 ('r32', 2, 'Aides', 'Aides calcul surface intestin', 'Vous demandez de l''aide à un collègue de labo qui est plutôt doué pour ces questions de Math…', 50, '', true),
 ('r33', 1, 'Ressources documentaires', 'Article de presse de divertissement', 'Comment avoir un ventre plat !', 10, 'https://www.elle.fr/Minceur/News/Nutrition-Sante/Microbiote-Comment-les-prebiotiques-equilibrent-la-flore-intestinale-3735125', false),
@@ -195,47 +181,12 @@ CREATE INDEX IF NOT EXISTS idx_resources_level ON resources(level);
 CREATE INDEX IF NOT EXISTS idx_resources_type ON resources(type);
 
 -- ============================================
--- VUES UTILES (optionnel)
+-- VÉRIFICATION
 -- ============================================
 
--- Vue pour voir les équipes avec leurs stats calculées
-CREATE OR REPLACE VIEW teams_with_stats AS
 SELECT 
-  t.*,
-  (t.discovery_points + t.reasoning_points) as total_reputation,
-  CASE 
-    WHEN (t.discovery_points + t.reasoning_points) >= 15 THEN 4
-    WHEN (t.discovery_points + t.reasoning_points) >= 10 THEN 3
-    WHEN (t.discovery_points + t.reasoning_points) >= 5 THEN 2
-    ELSE 1
-  END as calculated_level,
-  c.class_name,
-  c.school_year
-FROM teams t
-JOIN classes c ON t.class_id = c.id;
-
--- Vue pour voir les ressources achetées avec détails
-CREATE OR REPLACE VIEW purchased_resources_details AS
-SELECT 
-  pr.id,
-  pr.team_id,
-  pr.purchased_at,
-  r.*,
-  t.team_number,
-  t.team_name,
-  c.class_name
-FROM purchased_resources pr
-JOIN resources r ON pr.resource_id = r.id
-JOIN teams t ON pr.team_id = t.id
-JOIN classes c ON t.class_id = c.id;
-
--- ============================================
--- TERMINÉ !
--- ============================================
-
--- Vérification
-SELECT 'Setup complet terminé !' as message,
-       (SELECT COUNT(*) FROM classes) as nb_classes,
-       (SELECT COUNT(*) FROM teams) as nb_teams,
-       (SELECT COUNT(*) FROM resources) as nb_resources,
-       (SELECT COUNT(*) FROM purchased_resources) as nb_purchases;
+  'Installation terminée !' as message,
+  (SELECT COUNT(*) FROM classes) as nb_classes,
+  (SELECT COUNT(*) FROM teams) as nb_teams,
+  (SELECT COUNT(*) FROM resources) as nb_resources,
+  (SELECT COUNT(*) FROM purchased_resources) as nb_purchases;
