@@ -64,6 +64,22 @@ CREATE TABLE IF NOT EXISTS purchased_resources (
   CONSTRAINT purchased_resources_resource_data_check CHECK (resource_data IS NOT NULL)
 );
 
+-- Table des ressources éducatives (catalogue)
+CREATE TABLE IF NOT EXISTS resources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  level TEXT NOT NULL CHECK (level IN ('LEVEL 1', 'LEVEL 2', 'LEVEL 3', 'LEVEL 4')),
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  price INTEGER NOT NULL CHECK (price > 0),
+  title_link TEXT,
+  link TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Contraintes
+  CONSTRAINT resources_unique_title UNIQUE(title)
+);
+
 -- =====================================================
 -- INDEX POUR AMÉLIORER LES PERFORMANCES
 -- =====================================================
@@ -73,6 +89,8 @@ CREATE INDEX IF NOT EXISTS idx_teams_level ON teams(level);
 CREATE INDEX IF NOT EXISTS idx_purchased_resources_team_id ON purchased_resources(team_id);
 CREATE INDEX IF NOT EXISTS idx_classes_created_at ON classes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_teams_created_at ON teams(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_resources_level ON resources(level);
+CREATE INDEX IF NOT EXISTS idx_resources_type ON resources(type);
 
 -- =====================================================
 -- FONCTION POUR METTRE À JOUR updated_at
@@ -110,6 +128,7 @@ CREATE TRIGGER update_teams_updated_at
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE purchased_resources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
 
 -- Politique permissive pour le développement
 -- ⚠️ Pour la production, créez des politiques plus strictes basées sur l'authentification
@@ -143,6 +162,46 @@ DROP POLICY IF EXISTS "Allow public write access" ON purchased_resources;
 CREATE POLICY "Allow public write access" 
     ON purchased_resources FOR ALL 
     USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access" ON resources;
+CREATE POLICY "Allow public read access" 
+    ON resources FOR SELECT 
+    USING (true);
+
+-- =====================================================
+-- DONNÉES DES RESSOURCES ÉDUCATIVES
+-- =====================================================
+
+-- LEVEL 1 - Observations et Livres
+INSERT INTO resources (level, type, title, description, price, title_link, link) VALUES
+('LEVEL 1', 'Observation', 'Observation de cellules au microscope', 'Découvrez la structure des cellules végétales et animales au microscope optique', 30, 'observation-cellules', 'https://example.com/obs-cellules'),
+('LEVEL 1', 'Observation', 'Observation du système digestif', 'Schémas annotés et légendés du système digestif humain complet', 25, 'observation-digestif', 'https://example.com/obs-digestif'),
+('LEVEL 1', 'Livre', 'Livre: Les fondamentaux de la digestion', 'Manuel illustré détaillant le processus complet de la digestion', 40, 'livre-digestion', 'https://example.com/livre-digestion'),
+('LEVEL 1', 'Livre', 'Atlas anatomique illustré', 'Atlas complet du corps humain avec focus sur le système digestif', 50, 'atlas-anatomique', 'https://example.com/atlas')
+ON CONFLICT (title) DO NOTHING;
+
+-- LEVEL 2 - Dissections et Expériences
+INSERT INTO resources (level, type, title, description, price, title_link, link) VALUES
+('LEVEL 2', 'Dissection', 'Dissection virtuelle: Appareil digestif', 'Exploration interactive en 3D des organes du système digestif', 60, 'dissection-virtuelle', 'https://example.com/dissection'),
+('LEVEL 2', 'Dissection', 'Kit de dissection de grenouille', 'Étude comparative du système digestif des amphibiens', 55, 'kit-grenouille', 'https://example.com/kit-grenouille'),
+('LEVEL 2', 'Expérience', 'Expérience: Action de la salive', 'Protocole expérimental sur la digestion enzymatique salivaire', 45, 'exp-salive', 'https://example.com/exp-salive'),
+('LEVEL 2', 'Expérience', 'Test des nutriments', 'Kit de tests chimiques pour identifier glucides, lipides et protéines', 50, 'test-nutriments', 'https://example.com/test-nutriments')
+ON CONFLICT (title) DO NOTHING;
+
+-- LEVEL 3 - Analyses et Doc Médical
+INSERT INTO resources (level, type, title, description, price, title_link, link) VALUES
+('LEVEL 3', 'Analyse', 'Analyse de suc gastrique', 'Étude détaillée de la composition et du pH du suc gastrique', 70, 'analyse-gastrique', 'https://example.com/analyse-gastrique'),
+('LEVEL 3', 'Analyse', 'Analyse microscopique des villosités', 'Observation détaillée au microscope électronique de l''intestin grêle', 65, 'analyse-villosites', 'https://example.com/analyse-villosites'),
+('LEVEL 3', 'Doc Médical', 'Dossier médical: Pathologies digestives', 'Études de cas cliniques de maladies du système digestif', 80, 'doc-pathologies', 'https://example.com/doc-pathologies'),
+('LEVEL 3', 'Doc Médical', 'Imagerie médicale digestive', 'Collection d''IRM et scanners du système digestif commentés', 75, 'imagerie-medicale', 'https://example.com/imagerie')
+ON CONFLICT (title) DO NOTHING;
+
+-- LEVEL 4 - Synthèses
+INSERT INTO resources (level, type, title, description, price, title_link, link) VALUES
+('LEVEL 4', 'Synthèse', 'Synthèse: De la bouche au sang', 'Document complet sur l''absorption et le transport des nutriments', 100, 'synthese-complete', 'https://example.com/synthese'),
+('LEVEL 4', 'Synthèse', 'Modélisation 3D du système digestif', 'Application de modélisation interactive du processus digestif', 120, 'modelisation-3d', 'https://example.com/model-3d'),
+('LEVEL 4', 'Synthèse', 'Conférence: Recherches actuelles', 'Vidéo de conférence sur les dernières recherches en gastro-entérologie', 90, 'conference-recherche', 'https://example.com/conference')
+ON CONFLICT (title) DO NOTHING;
 
 -- =====================================================
 -- DONNÉES DE TEST (OPTIONNEL)
@@ -229,16 +288,23 @@ SELECT
 UNION ALL
 SELECT 'teams', COUNT(*) FROM teams
 UNION ALL
-SELECT 'purchased_resources', COUNT(*) FROM purchased_resources;
+SELECT 'purchased_resources', COUNT(*) FROM purchased_resources
+UNION ALL
+SELECT 'resources', COUNT(*) FROM resources;
 
 -- =====================================================
 -- SCRIPT TERMINÉ
 -- =====================================================
 -- ✅ Vos tables sont prêtes à être utilisées !
+-- ✅ 15 ressources éducatives ont été insérées !
 -- 
 -- Prochaines étapes :
 -- 1. Notez l'URL de votre projet Supabase
 -- 2. Récupérez votre clé API "anon public"
 -- 3. Configurez votre fichier .env.local
 -- 4. Lancez l'application : npm run dev
+-- 
+-- Vérification : 
+-- - La table 'resources' doit contenir 15 lignes
+-- - Les ressources s'afficheront dans l'interface élève
 -- =====================================================

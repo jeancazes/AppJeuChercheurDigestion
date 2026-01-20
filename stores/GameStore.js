@@ -375,6 +375,52 @@ function createGameStore() {
     },
 
     // =========================================
+    // GESTION DES RESSOURCES (CATALOGUE)
+    // =========================================
+
+    async loadResources() {
+      try {
+        const { data, error } = await supabase
+          .from('resources')
+          .select('*')
+          .order('level', { ascending: true })
+          .order('type', { ascending: true });
+
+        if (error) throw error;
+
+        console.log('✅ Ressources chargées:', data.length);
+        return data;
+      } catch (error) {
+        console.error('❌ Erreur chargement ressources:', error);
+        throw error;
+      }
+    },
+
+    async getResourcesByLevel(teamLevel) {
+      try {
+        const { data, error } = await supabase
+          .from('resources')
+          .select('*')
+          .order('level', { ascending: true })
+          .order('type', { ascending: true });
+
+        if (error) throw error;
+
+        // Filtrer par niveau accessible
+        const accessible = data.filter(resource => {
+          const resourceLevelNum = parseInt(resource.level.split(' ')[1]);
+          return resourceLevelNum <= teamLevel;
+        });
+
+        console.log(`✅ Ressources niveau ≤${teamLevel}:`, accessible.length);
+        return accessible;
+      } catch (error) {
+        console.error('❌ Erreur chargement ressources par niveau:', error);
+        throw error;
+      }
+    },
+
+    // =========================================
     // TEMPS RÉEL (OPTIONNEL)
     // =========================================
 
