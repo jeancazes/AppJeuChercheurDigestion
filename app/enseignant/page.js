@@ -87,6 +87,20 @@ export default function EnseignantPage() {
   };
 
   if (!isAuthenticated) {
+    const handleKeypadClick = (digit) => {
+      if (code.length < 4 && !(lockedUntil && Date.now() < lockedUntil)) {
+        setCode(code + digit);
+      }
+    };
+
+    const handleDelete = () => {
+      setCode(code.slice(0, -1));
+    };
+
+    const handleClear = () => {
+      setCode('');
+    };
+
     return (
       <div style={styles.container}>
         <div style={styles.authCard}>
@@ -94,17 +108,57 @@ export default function EnseignantPage() {
           <p style={styles.authSubtitle}>Code PIN requis</p>
           
           <form onSubmit={handleAuth} style={styles.authForm}>
-            <input
-              type="password"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Entrez le code PIN"
-              style={styles.authInput}
-              maxLength="4"
-              disabled={lockedUntil && Date.now() < lockedUntil}
-            />
+            {/* Affichage du code avec points */}
+            <div style={styles.codeDisplay}>
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} style={{
+                  ...styles.codeDot,
+                  background: i < code.length ? COLORS.primary : COLORS.secondary,
+                }} />
+              ))}
+            </div>
             
             {error && <div style={styles.error}>{error}</div>}
+            
+            {/* Clavier numérique */}
+            <div style={styles.keypad}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(digit => (
+                <button
+                  key={digit}
+                  type="button"
+                  onClick={() => handleKeypadClick(digit.toString())}
+                  style={styles.keypadButton}
+                  disabled={lockedUntil && Date.now() < lockedUntil}
+                >
+                  {digit}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleClear}
+                style={styles.keypadButtonSecondary}
+                disabled={lockedUntil && Date.now() < lockedUntil}
+              >
+                C
+              </button>
+              <button
+                key={0}
+                type="button"
+                onClick={() => handleKeypadClick('0')}
+                style={styles.keypadButton}
+                disabled={lockedUntil && Date.now() < lockedUntil}
+              >
+                0
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                style={styles.keypadButtonSecondary}
+                disabled={lockedUntil && Date.now() < lockedUntil}
+              >
+                ⌫
+              </button>
+            </div>
             
             <button 
               type="submit" 
@@ -114,6 +168,13 @@ export default function EnseignantPage() {
               Accéder
             </button>
           </form>
+
+          {/* Lien retour accueil */}
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <a href="/" style={styles.backLink}>
+              ← Retour à l'accueil
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -959,13 +1020,45 @@ const styles = {
     flexDirection: 'column',
     gap: '15px',
   },
-  authInput: {
-    padding: '12px',
-    fontSize: '18px',
+  codeDisplay: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '12px',
+    margin: '20px 0',
+  },
+  codeDot: {
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    transition: 'all 0.3s',
+  },
+  keypad: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '12px',
+    marginBottom: '15px',
+  },
+  keypadButton: {
+    padding: '20px',
+    fontSize: '22px',
+    fontWeight: 'bold',
+    background: COLORS.white,
     border: `2px solid ${COLORS.cardBorder}`,
-    borderRadius: '8px',
-    textAlign: 'center',
-    letterSpacing: '4px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    color: COLORS.primary,
+  },
+  keypadButtonSecondary: {
+    padding: '20px',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    background: COLORS.secondary,
+    border: `2px solid ${COLORS.cardBorder}`,
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    color: COLORS.text,
   },
   authButton: {
     padding: '12px',
@@ -976,6 +1069,11 @@ const styles = {
     fontSize: '16px',
     fontWeight: 'bold',
     cursor: 'pointer',
+  },
+  backLink: {
+    color: COLORS.textLight,
+    textDecoration: 'none',
+    fontSize: '14px',
   },
   error: {
     color: COLORS.error,

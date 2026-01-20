@@ -94,7 +94,30 @@ const MedicalIcons = {
 // ============================================
 const ClassSelectionPage = ({ onSelectClass }) => {
   const gameStore = getGameStore();
-  const classes = gameStore.getClasses();
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      try {
+        await gameStore.refreshClasses();
+        setClasses(gameStore.getClasses());
+      } catch (error) {
+        console.error('Erreur chargement classes:', error);
+      }
+      setLoading(false);
+    };
+
+    loadClasses();
+
+    // S'abonner aux changements
+    const unsubscribe = gameStore.subscribe(() => {
+      setClasses(gameStore.getClasses());
+    });
+
+    return unsubscribe;
+  }, []);
 
   return (
     <div style={{
@@ -139,51 +162,72 @@ const ClassSelectionPage = ({ onSelectClass }) => {
         </p>
       </div>
 
+      {/* Chargement */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '40px', color: COLORS.textLight }}>
+          <p>Chargement des classes...</p>
+        </div>
+      )}
+
+      {/* Aucune classe */}
+      {!loading && classes.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p style={{ color: COLORS.textLight, fontSize: '1.1rem', marginBottom: '10px' }}>
+            Aucune classe disponible
+          </p>
+          <p style={{ color: COLORS.textLight, fontSize: '0.9rem' }}>
+            Contactez votre enseignant pour créer une classe
+          </p>
+        </div>
+      )}
+
       {/* Liste des classes */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
-        {classes.map(classe => {
-          const equipes = gameStore.getEquipesByClasse(classe.id);
-          
-          return (
-            <button
-              key={classe.id}
-              onClick={() => onSelectClass(classe)}
-              style={{
-                background: COLORS.white,
-                border: `3px solid ${COLORS.cardBorder}`,
-                borderRadius: '16px',
-                padding: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
-              }}
-            >
-              <div style={{ textAlign: 'left' }}>
-                <h2 style={{ color: COLORS.primaryDark, fontSize: '1.3rem', fontWeight: '800', marginBottom: '4px' }}>
-                  {classe.name}
-                </h2>
-                <p style={{ color: COLORS.textLight, fontSize: '0.85rem' }}>
-                  {classe.anneeScolaire}
-                </p>
-              </div>
-              <div style={{
-                background: COLORS.secondary,
-                padding: '10px 16px',
-                borderRadius: '12px',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: COLORS.primary }}>
-                  {equipes.length}
+      {!loading && classes.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
+          {classes.map(classe => {
+            const equipes = gameStore.getEquipesByClasse(classe.id);
+            
+            return (
+              <button
+                key={classe.id}
+                onClick={() => onSelectClass(classe)}
+                style={{
+                  background: COLORS.white,
+                  border: `3px solid ${COLORS.cardBorder}`,
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
+                }}
+              >
+                <div style={{ textAlign: 'left' }}>
+                  <h2 style={{ color: COLORS.primaryDark, fontSize: '1.3rem', fontWeight: '800', marginBottom: '4px' }}>
+                    {classe.name}
+                  </h2>
+                  <p style={{ color: COLORS.textLight, fontSize: '0.85rem' }}>
+                    {classe.anneeScolaire}
+                  </p>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: COLORS.textLight }}>équipe{equipes.length > 1 ? 's' : ''}</div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div style={{
+                  background: COLORS.secondary,
+                  padding: '10px 16px',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: COLORS.primary }}>
+                    {equipes.length}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: COLORS.textLight }}>équipe{equipes.length > 1 ? 's' : ''}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Lien retour */}
       <div style={{ textAlign: 'center', marginTop: '40px' }}>
@@ -204,7 +248,30 @@ const ClassSelectionPage = ({ onSelectClass }) => {
 // ============================================
 const TeamSelectionPage = ({ classe, onSelectTeam, onBack }) => {
   const gameStore = getGameStore();
-  const equipes = gameStore.getEquipesByClasse(classe.id);
+  const [equipes, setEquipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      setLoading(true);
+      try {
+        await gameStore.loadClasse(classe.id);
+        setEquipes(gameStore.getEquipesByClasse(classe.id));
+      } catch (error) {
+        console.error('Erreur chargement équipes:', error);
+      }
+      setLoading(false);
+    };
+
+    loadTeams();
+
+    // S'abonner aux changements
+    const unsubscribe = gameStore.subscribe(() => {
+      setEquipes(gameStore.getEquipesByClasse(classe.id));
+    });
+
+    return unsubscribe;
+  }, [classe.id]);
 
   const shortenName = (name) => {
     const parts = name.split(' ');
@@ -246,64 +313,84 @@ const TeamSelectionPage = ({ classe, onSelectTeam, onBack }) => {
         </div>
       </div>
 
+      {/* Chargement */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '40px', color: COLORS.textLight }}>
+          <p>Chargement des équipes...</p>
+        </div>
+      )}
+
+      {/* Aucune équipe */}
+      {!loading && equipes.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p style={{ color: COLORS.textLight, fontSize: '1.1rem', marginBottom: '10px' }}>
+            Aucune équipe dans cette classe
+          </p>
+          <p style={{ color: COLORS.textLight, fontSize: '0.9rem' }}>
+            Contactez votre enseignant pour créer des équipes
+          </p>
+        </div>
+      )}
+
       {/* Liste des équipes */}
-      <div style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {equipes.map(equipe => {
-            const levelInfo = LEVEL_CONFIG[equipe.level];
-            
-            return (
-              <button
-                key={equipe.id}
-                onClick={() => onSelectTeam(equipe.id)}
-                style={{
-                  background: COLORS.white,
-                  border: `3px solid ${COLORS.cardBorder}`,
-                  borderRadius: '16px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
-                  textAlign: 'left',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '50px',
-                      height: '50px',
-                      background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
-                      borderRadius: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: COLORS.white,
-                    }}>
-                      {MedicalIcons.team}
-                    </div>
-                    <div>
-                      <h3 style={{ color: COLORS.primaryDark, fontSize: '1.1rem', fontWeight: '800', marginBottom: '2px' }}>
-                        Équipe {equipe.numero}
-                      </h3>
-                      <span style={{
-                        background: COLORS.secondary,
-                        color: COLORS.primaryDark,
-                        padding: '3px 10px',
-                        borderRadius: '8px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
+      {!loading && equipes.length > 0 && (
+        <div style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {equipes.map(equipe => {
+              const levelInfo = LEVEL_CONFIG[equipe.level];
+              
+              return (
+                <button
+                  key={equipe.id}
+                  onClick={() => onSelectTeam(equipe.id)}
+                  style={{
+                    background: COLORS.white,
+                    border: `3px solid ${COLORS.cardBorder}`,
+                    borderRadius: '16px',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+                        borderRadius: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: COLORS.white,
                       }}>
-                        Niv. {equipe.level} - {levelInfo.title}
-                      </span>
+                        {MedicalIcons.team}
+                      </div>
+                      <div>
+                        <h3 style={{ color: COLORS.primaryDark, fontSize: '1.1rem', fontWeight: '800', marginBottom: '2px' }}>
+                          Équipe {equipe.numero}
+                        </h3>
+                        <span style={{
+                          background: COLORS.secondary,
+                          color: COLORS.primaryDark,
+                          padding: '3px 10px',
+                          borderRadius: '8px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                        }}>
+                          Niv. {equipe.level} - {levelInfo.title}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{
-                    background: '#E8F5E9',
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: '1rem', fontWeight: '800', color: COLORS.success }}>
+                    <div style={{
+                      background: '#E8F5E9',
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: '1rem', fontWeight: '800', color: COLORS.success }}>
                       {equipe.budget}€
                     </div>
                     <div style={{ fontSize: '0.65rem', color: COLORS.textLight }}>budget</div>
