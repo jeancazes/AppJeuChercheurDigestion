@@ -1,6 +1,7 @@
 {
   "name": "laboratoire-fabuleux",
-  "version": "1.0.0",
+  "version": "7.0.0",
+  "description": "Plateforme de gaming éducatif pour cours de SVT",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,12 +10,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.0",
+    "@supabase/supabase-js": "^2.39.1",
+    "next": "14.0.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "svelte": "^4.2.8"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.0"
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

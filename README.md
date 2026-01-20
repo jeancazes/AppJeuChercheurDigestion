@@ -1,158 +1,115 @@
-# 🔬 Le Laboratoire Fabuleux
+# Le Laboratoire Fabuleux v7.0 🧪
 
-**Serious Game pour l'enseignement de la digestion en SVT**
+Plateforme de gaming éducatif pour cours de SVT (Sciences de la Vie et de la Terre) avec système de réputation, budget et progression par niveaux.
 
-Un jeu éducatif permettant aux élèves de 5ème d'apprendre la digestion de manière ludique et interactive avec un thème médical.
+## ✨ Nouveautés de la v7
 
----
+- 🔄 **Persistance cloud** avec Supabase
+- 🌐 **Multi-appareils** : synchronisation automatique
+- 📊 **Base de données PostgreSQL** robuste et performante
+- 🔒 **Sécurité** : Row Level Security (RLS)
+- ⚡ **Temps réel** : mises à jour instantanées entre appareils
 
-## 📁 Structure du projet
+## 🚀 Démarrage rapide
+
+### 1. Installation
+
+```bash
+npm install
+```
+
+### 2. Configuration Supabase
+
+Suivez le **GUIDE_SUPABASE.md** pour :
+- Créer votre projet Supabase
+- Configurer les tables
+- Obtenir vos clés API
+
+### 3. Configuration locale
+
+Créez un fichier `.env.local` à partir de `.env.local.example` :
+
+```bash
+cp .env.local.example .env.local
+```
+
+Remplissez avec vos identifiants Supabase :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_clé_publique
+```
+
+### 4. Lancer en local
+
+```bash
+npm run dev
+```
+
+Ouvrez [http://localhost:3000](http://localhost:3000)
+
+## 📦 Structure du projet
 
 ```
-laboratoire-fabuleux/
-├── app/
-│   ├── layout.js          # Layout principal
-│   ├── globals.css         # Styles globaux
-│   ├── page.js             # Page d'accueil
-│   ├── eleve/
-│   │   └── page.js         # Application élève
-│   └── enseignant/
-│       └── page.js         # Application enseignant
+laboratoire-fabuleux-v7/
 ├── lib/
-│   └── gameStore.js        # Store de données partagé
-├── data/
-│   └── resources.csv       # Fichier CSV des ressources
-├── package.json
-├── next.config.js
-└── README.md
+│   └── supabase.js           # Configuration Supabase
+├── stores/
+│   └── GameStore.js          # État global avec Supabase
+├── pages/
+│   ├── index.js              # Page d'accueil
+│   ├── teacher/              # Interface professeur
+│   └── student/              # Interface élève
+├── .env.local.example        # Exemple de configuration
+├── GUIDE_SUPABASE.md         # Guide complet Supabase
+└── README.md                 # Ce fichier
 ```
-
----
-
-## 🚀 Déploiement sur Vercel
-
-### Méthode 1 : Via l'interface Vercel (recommandée)
-
-1. **Créez un compte Vercel** sur [vercel.com](https://vercel.com) si ce n'est pas déjà fait
-
-2. **Uploadez le projet sur GitHub/GitLab/Bitbucket**
-   - Créez un nouveau repository
-   - Uploadez tous les fichiers du projet
-
-3. **Connectez Vercel à votre repository**
-   - Allez sur [vercel.com/new](https://vercel.com/new)
-   - Cliquez sur "Import Project"
-   - Sélectionnez votre repository
-   - Vercel détectera automatiquement Next.js
-
-4. **Déployez**
-   - Cliquez sur "Deploy"
-   - Attendez quelques minutes
-   - Votre site sera disponible à `https://votre-projet.vercel.app`
-
-### Méthode 2 : Via la CLI Vercel
-
-1. **Installez la CLI Vercel**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Connectez-vous**
-   ```bash
-   vercel login
-   ```
-
-3. **Déployez depuis le dossier du projet**
-   ```bash
-   cd laboratoire-fabuleux
-   vercel
-   ```
-
-4. **Pour un déploiement en production**
-   ```bash
-   vercel --prod
-   ```
-
----
 
 ## 🎮 Fonctionnalités
 
-### Espace Élève (`/eleve`)
-- Page d'accueil avec statistiques de l'équipe
-- Catalogue de ressources filtrable (41 ressources)
-- Système d'achat avec gestion du budget
-- Mes ressources achetées
-- Fiche d'équipe
-- Page d'aide avec les règles du jeu
+### Interface Professeur (PIN: 1447)
+- ✅ Créer et gérer des classes
+- ✅ Créer et gérer des équipes
+- ✅ Attribuer des points de réputation (Découverte & Raisonnement)
+- ✅ Suivre la progression des équipes
 
-### Espace Enseignant (`/enseignant`)
-- Sélection de classe
-- Gestion des équipes
-- Attribution de points de réputation :
-  - 🔍 Points de Découverte
-  - 🧠 Points de Raisonnement
-- Synchronisation en temps réel
+### Interface Élève
+- ✅ Consulter la fiche personnage de l'équipe
+- ✅ Acheter des ressources éducatives
+- ✅ Suivre le budget et le niveau
 
 ### Système de progression
-| Niveau | Titre | Budget | Réputation requise |
-|--------|-------|--------|-------------------|
-| 1 | Stagiaire | 100€ | 0 pts |
-| 2 | Interne | 200€ | 5 pts |
-| 3 | Résident | 500€ | 10 pts |
-| 4 | Spécialiste | 1000€ | 15 pts |
+- **Niveau 1** : 100€ - Accès Observations et Livres
+- **Niveau 2** : +100€ - Accès Dissections et Expériences
+- **Niveau 3** : +300€ - Accès Analyses et Doc Médical
+- **Niveau 4** : +500€ - Accès Synthèses
 
----
+## 🚢 Déploiement sur Vercel
 
-## 🛠️ Développement local
+1. Pushez votre code sur GitHub
+2. Allez sur [vercel.com](https://vercel.com)
+3. Importez votre repository
+4. Ajoutez les variables d'environnement :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. Déployez !
 
-1. **Installez les dépendances**
-   ```bash
-   npm install
-   ```
+## 📚 Documentation complète
 
-2. **Lancez le serveur de développement**
-   ```bash
-   npm run dev
-   ```
+- **[GUIDE_SUPABASE.md](GUIDE_SUPABASE.md)** - Guide complet d'installation et configuration Supabase
 
-3. **Ouvrez** [http://localhost:3000](http://localhost:3000)
+## 🆘 Support
 
----
+En cas de problème :
+1. Consultez le [GUIDE_SUPABASE.md](GUIDE_SUPABASE.md)
+2. Vérifiez la console du navigateur (F12)
+3. Vérifiez les logs Supabase
 
-## 📝 Notes importantes
+## 📝 License
 
-- **Persistance des données** : Actuellement, les données sont stockées en mémoire. En production, il faudrait connecter à une base de données temps réel (Firebase, Supabase, etc.) pour une vraie synchronisation entre les appareils.
+Projet éducatif - Usage libre pour enseignants
 
-- **Authentification** : Pas de système d'authentification pour le moment. À ajouter pour un usage en classe réel.
+## 🙏 Crédits
 
-- **Design responsive** : L'application est optimisée pour mobile, tablette et desktop.
-
----
-
-## 🎨 Palette de couleurs
-
-- **Primaire** : #0288D1 (bleu médical)
-- **Primaire clair** : #4FC3F7
-- **Fond** : #E1F5FE → #B3E5FC
-- **Succès** : #4CAF50
-- **Avertissement** : #FF9800
-
----
-
-## 📚 Ressources éducatives
-
-Le catalogue contient 41 ressources organisées en catégories :
-- Ressources anatomiques
-- Observations
-- Ressources historiques
-- Examens médicaux (vidéos)
-- Ressources expérimentales
-- Résultats d'analyses médicales
-- Ressources documentaires
-- Aides
-
----
-
-## 📄 Licence
-
-Projet éducatif - © 2025
+Développé pour l'enseignement des SVT
+Version 7.0 - Janvier 2025
