@@ -768,25 +768,6 @@ function ModuleEquipes({ showNotification }) {
     </div>
   );
 }
-              onClick={() => setFormData({ ...formData, membres: [...formData.membres, ''] })}
-            >
-              + Ajouter un membre
-            </button>
-          </div>
-
-          <div style={styles.modalActions}>
-            <button style={styles.cancelButton} onClick={() => setShowModal(false)}>
-              Annuler
-            </button>
-            <button style={styles.saveButton} onClick={handleSave}>
-              {Icons.check} Enregistrer
-            </button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
 
 // ============================================
 // MODULE : GESTION DES RESSOURCES
