@@ -580,103 +580,208 @@ function ModuleEquipes({ showNotification }) {
 
       {loading && <div style={styles.loading}>Chargement...</div>}
 
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>N°</th>
-              <th style={styles.th}>Membres</th>
-              <th style={styles.th}>Level</th>
-              <th style={styles.th}>Budget</th>
-              <th style={styles.th}>Découvertes</th>
-              <th style={styles.th}>Raisonnement</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {equipes.map(equipe => (
-              <tr key={equipe.id} style={styles.tr}>
-                <td style={styles.td}>{equipe.numero}</td>
-                <td style={styles.td}>{equipe.membres.join(', ')}</td>
-                <td style={styles.td}>
-                  <span style={{
-                    ...styles.badge,
-                    animation: levelAnimations[equipe.id] ? 'levelUp 0.6s ease-out' : 'none',
-                  }}>
-                    {LEVEL_CONFIG[equipe.level]?.title || `Level ${equipe.level}`}
-                  </span>
-                </td>
-                <td style={styles.td}>
-                  <div style={styles.budgetControl}>
-                    <button 
-                      style={styles.budgetButton} 
-                      onClick={() => addBudget(equipe, -10)}
-                      disabled={equipe.budget < 10}
-                    >
-                      -10
-                    </button>
-                    <span style={styles.budgetValue}>{equipe.budget}€</span>
-                    <button 
-                      style={styles.budgetButton} 
-                      onClick={() => addBudget(equipe, 10)}
-                    >
-                      +10
-                    </button>
-                  </div>
-                </td>
-                <td style={styles.td}>
-                  <div style={styles.pointsControl}>
-                    <button 
-                      style={styles.pointsButton} 
-                      onClick={() => removeReputation(equipe, 'decouvertes')}
-                    >
-                      −
-                    </button>
-                    <span style={styles.pointsValue}>{equipe.reputationDecouvertes}</span>
-                    <button 
-                      style={styles.pointsButton} 
-                      onClick={() => addReputation(equipe, 'decouvertes')}
-                    >
-                      +
-                    </button>
-                  </div>
-                </td>
-                <td style={styles.td}>
-                  <div style={styles.pointsControl}>
-                    <button 
-                      style={styles.pointsButton} 
-                      onClick={() => removeReputation(equipe, 'raisonnement')}
-                    >
-                      −
-                    </button>
-                    <span style={styles.pointsValue}>{equipe.reputationRaisonnement}</span>
-                    <button 
-                      style={styles.pointsButton} 
-                      onClick={() => addReputation(equipe, 'raisonnement')}
-                    >
-                      +
-                    </button>
-                  </div>
-                </td>
-                <td style={styles.td}>
-                  <button 
-                    style={styles.resourceButton} 
-                    onClick={() => showResourcesModal(equipe.id)}
-                    title="Voir les ressources acquises"
-                  >
-                    {Icons.resource}
-                  </button>
-                  <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
-                    {Icons.edit}
-                  </button>
-                  <button style={styles.iconButtonDanger} onClick={() => handleDelete(equipe)}>
-                    {Icons.trash}
-                  </button>
-                </td>
+      {/* Vue Desktop (tableau) */}
+      <div className="desktopView" style={styles.desktopView}>
+        <div style={styles.tableContainer}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>N°</th>
+                <th style={styles.th}>Membres</th>
+                <th style={styles.th}>Level</th>
+                <th style={styles.th}>Budget</th>
+                <th style={styles.th}>Découvertes</th>
+                <th style={styles.th}>Raisonnement</th>
+                <th style={styles.th}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {equipes.map(equipe => (
+                <tr key={equipe.id} style={styles.tr}>
+                  <td style={styles.td}>{equipe.numero}</td>
+                  <td style={styles.td}>{equipe.membres.join(', ')}</td>
+                  <td style={styles.td}>
+                    <span style={{
+                      ...styles.badge,
+                      animation: levelAnimations[equipe.id] ? 'levelUp 0.6s ease-out' : 'none',
+                    }}>
+                      {LEVEL_CONFIG[equipe.level]?.title || `Level ${equipe.level}`}
+                    </span>
+                  </td>
+                  <td style={styles.td}>
+                    <div style={styles.budgetControl}>
+                      <button 
+                        style={styles.budgetButton} 
+                        onClick={() => addBudget(equipe, -10)}
+                        disabled={equipe.budget < 10}
+                      >
+                        -10
+                      </button>
+                      <span style={styles.budgetValue}>{equipe.budget}€</span>
+                      <button 
+                        style={styles.budgetButton} 
+                        onClick={() => addBudget(equipe, 10)}
+                      >
+                        +10
+                      </button>
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    <div style={styles.pointsControl}>
+                      <button 
+                        style={styles.pointsButton} 
+                        onClick={() => removeReputation(equipe, 'decouvertes')}
+                      >
+                        −
+                      </button>
+                      <span style={styles.pointsValue}>{equipe.reputationDecouvertes}</span>
+                      <button 
+                        style={styles.pointsButton} 
+                        onClick={() => addReputation(equipe, 'decouvertes')}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    <div style={styles.pointsControl}>
+                      <button 
+                        style={styles.pointsButton} 
+                        onClick={() => removeReputation(equipe, 'raisonnement')}
+                      >
+                        −
+                      </button>
+                      <span style={styles.pointsValue}>{equipe.reputationRaisonnement}</span>
+                      <button 
+                        style={styles.pointsButton} 
+                        onClick={() => addReputation(equipe, 'raisonnement')}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    <button 
+                      style={styles.resourceButton} 
+                      onClick={() => showResourcesModal(equipe.id)}
+                      title="Voir les ressources acquises"
+                    >
+                      {Icons.resource}
+                    </button>
+                    <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
+                      {Icons.edit}
+                    </button>
+                    <button style={styles.iconButtonDanger} onClick={() => handleDelete(equipe)}>
+                      {Icons.trash}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Vue Mobile (cartes) */}
+      <div className="mobileView" style={styles.mobileView}>
+        {equipes.map(equipe => (
+          <div key={equipe.id} style={styles.equipeCard}>
+            {/* En-tête de la carte */}
+            <div style={styles.cardHeader}>
+              <div style={styles.cardHeaderLeft}>
+                <div style={styles.equipeNumero}>Équipe {equipe.numero}</div>
+                <div style={styles.equipeMembres}>{equipe.membres.join(', ')}</div>
+              </div>
+              <div style={styles.cardHeaderRight}>
+                <button 
+                  style={styles.resourceButtonMobile} 
+                  onClick={() => showResourcesModal(equipe.id)}
+                  title="Ressources"
+                >
+                  {Icons.resource}
+                </button>
+                <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
+                  {Icons.edit}
+                </button>
+                <button style={styles.iconButtonDanger} onClick={() => handleDelete(equipe)}>
+                  {Icons.trash}
+                </button>
+              </div>
+            </div>
+
+            {/* Niveau et Budget */}
+            <div style={styles.cardRow}>
+              <div style={styles.cardRowItem}>
+                <div style={styles.cardLabel}>Niveau</div>
+                <span style={{
+                  ...styles.badgeMobile,
+                  animation: levelAnimations[equipe.id] ? 'levelUp 0.6s ease-out' : 'none',
+                }}>
+                  {LEVEL_CONFIG[equipe.level]?.title || `Level ${equipe.level}`}
+                </span>
+              </div>
+              <div style={styles.cardRowItem}>
+                <div style={styles.cardLabel}>Budget</div>
+                <div style={styles.budgetControlMobile}>
+                  <button 
+                    style={styles.budgetButtonMobile} 
+                    onClick={() => addBudget(equipe, -10)}
+                    disabled={equipe.budget < 10}
+                  >
+                    −10
+                  </button>
+                  <span style={styles.budgetValueMobile}>{equipe.budget}€</span>
+                  <button 
+                    style={styles.budgetButtonMobile} 
+                    onClick={() => addBudget(equipe, 10)}
+                  >
+                    +10
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Points Découvertes */}
+            <div style={styles.cardSection}>
+              <div style={styles.cardLabel}>🔬 Découvertes</div>
+              <div style={styles.pointsControlMobile}>
+                <button 
+                  style={styles.pointsButtonMobile} 
+                  onClick={() => removeReputation(equipe, 'decouvertes')}
+                >
+                  −
+                </button>
+                <span style={styles.pointsValueMobile}>{equipe.reputationDecouvertes}</span>
+                <button 
+                  style={styles.pointsButtonMobile} 
+                  onClick={() => addReputation(equipe, 'decouvertes')}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Points Raisonnement */}
+            <div style={styles.cardSection}>
+              <div style={styles.cardLabel}>🧠 Raisonnement</div>
+              <div style={styles.pointsControlMobile}>
+                <button 
+                  style={styles.pointsButtonMobile} 
+                  onClick={() => removeReputation(equipe, 'raisonnement')}
+                >
+                  −
+                </button>
+                <span style={styles.pointsValueMobile}>{equipe.reputationRaisonnement}</span>
+                <button 
+                  style={styles.pointsButtonMobile} 
+                  onClick={() => addReputation(equipe, 'raisonnement')}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Modale d'édition équipe */}
@@ -762,6 +867,15 @@ function ModuleEquipes({ showNotification }) {
           100% {
             transform: scale(1);
             background: ${COLORS.primary};
+          }
+        }
+
+        @media (max-width: 768px) {
+          .desktopView {
+            display: none !important;
+          }
+          .mobileView {
+            display: block !important;
           }
         }
       `}</style>
@@ -1599,6 +1713,143 @@ const styles = {
     borderRadius: '6px',
     fontSize: '12px',
     fontWeight: 'bold',
+  },
+
+  // Responsive Views
+  desktopView: {
+    display: 'block',
+  },
+  mobileView: {
+    display: 'none',
+  },
+
+  // Mobile Cards (Cartes équipes)
+  equipeCard: {
+    background: COLORS.white,
+    border: `3px solid ${COLORS.cardBorder}`,
+    borderRadius: '16px',
+    padding: '16px',
+    marginBottom: '16px',
+    boxShadow: `0 4px 15px ${COLORS.cardShadow}`,
+  },
+  cardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '16px',
+    paddingBottom: '12px',
+    borderBottom: `2px solid ${COLORS.secondary}`,
+  },
+  cardHeaderLeft: {
+    flex: 1,
+  },
+  cardHeaderRight: {
+    display: 'flex',
+    gap: '8px',
+  },
+  equipeNumero: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+    marginBottom: '4px',
+  },
+  equipeMembres: {
+    fontSize: '14px',
+    color: COLORS.textLight,
+  },
+  cardRow: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '16px',
+  },
+  cardRowItem: {
+    flex: 1,
+  },
+  cardLabel: {
+    fontSize: '12px',
+    fontWeight: 'bold',
+    color: COLORS.textLight,
+    marginBottom: '8px',
+    textTransform: 'uppercase',
+  },
+  cardSection: {
+    marginBottom: '16px',
+  },
+  badgeMobile: {
+    display: 'inline-block',
+    background: COLORS.primary,
+    color: COLORS.white,
+    padding: '8px 16px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+  },
+  
+  // Mobile Controls
+  budgetControlMobile: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    justifyContent: 'center',
+  },
+  budgetButtonMobile: {
+    background: COLORS.success,
+    color: COLORS.white,
+    border: 'none',
+    borderRadius: '10px',
+    padding: '10px 16px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+    touchAction: 'manipulation',
+    minWidth: '60px',
+  },
+  budgetValueMobile: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+    minWidth: '70px',
+    textAlign: 'center',
+  },
+  pointsControlMobile: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    justifyContent: 'center',
+  },
+  pointsButtonMobile: {
+    background: COLORS.primary,
+    color: COLORS.white,
+    border: 'none',
+    borderRadius: '12px',
+    width: '50px',
+    height: '50px',
+    cursor: 'pointer',
+    fontSize: '28px',
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+    touchAction: 'manipulation',
+    boxShadow: `0 2px 8px ${COLORS.cardShadow}`,
+  },
+  pointsValueMobile: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+    minWidth: '50px',
+    textAlign: 'center',
+  },
+  resourceButtonMobile: {
+    background: COLORS.secondary,
+    color: COLORS.primary,
+    border: `2px solid ${COLORS.primary}`,
+    borderRadius: '8px',
+    padding: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   },
 
 
