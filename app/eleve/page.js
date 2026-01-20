@@ -391,42 +391,43 @@ const TeamSelectionPage = ({ classe, onSelectTeam, onBack }) => {
                       textAlign: 'center',
                     }}>
                       <div style={{ fontSize: '1rem', fontWeight: '800', color: COLORS.success }}>
-                      {equipe.budget}€
+                        {equipe.budget}€
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: COLORS.textLight }}>budget</div>
                     </div>
-                    <div style={{ fontSize: '0.65rem', color: COLORS.textLight }}>budget</div>
                   </div>
-                </div>
-                
-                <div style={{
-                  background: COLORS.background,
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                }}>
-                  {equipe.membres.map((membre, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        background: COLORS.white,
-                        color: COLORS.text,
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        fontSize: '0.8rem',
-                        fontWeight: '500',
-                        border: `1px solid ${COLORS.cardBorder}`,
-                      }}
-                    >
-                      {shortenName(membre)}
-                    </span>
-                  ))}
-                </div>
-              </button>
-            );
-          })}
+                  
+                  <div style={{
+                    background: COLORS.background,
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                  }}>
+                    {equipe.membres.map((membre, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          background: COLORS.white,
+                          color: COLORS.text,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          border: `1px solid ${COLORS.cardBorder}`,
+                        }}
+                      >
+                        {shortenName(membre)}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
