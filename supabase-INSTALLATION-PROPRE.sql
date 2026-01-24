@@ -68,6 +68,22 @@ CREATE TABLE purchased_resources (
   UNIQUE(team_id, resource_id)
 );
 
+-- Table TEAM_MEMBER_SESSIONS (Notes des séances par membre d'équipe)
+CREATE TABLE team_member_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  member_name TEXT NOT NULL,
+  session_1 INTEGER DEFAULT 0 CHECK (session_1 >= 0 AND session_1 <= 5),
+  session_2 INTEGER DEFAULT 0 CHECK (session_2 >= 0 AND session_2 <= 5),
+  session_3 INTEGER DEFAULT 0 CHECK (session_3 >= 0 AND session_3 <= 5),
+  session_4 INTEGER DEFAULT 0 CHECK (session_4 >= 0 AND session_4 <= 5),
+  session_5 INTEGER DEFAULT 0 CHECK (session_5 >= 0 AND session_5 <= 5),
+  session_6 INTEGER DEFAULT 0 CHECK (session_6 >= 0 AND session_6 <= 5),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(team_id, member_name)
+);
+
 -- ============================================
 -- ÉTAPE 3 : TRIGGERS
 -- ============================================
@@ -95,6 +111,11 @@ CREATE TRIGGER update_resources_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_team_member_sessions_updated_at
+  BEFORE UPDATE ON team_member_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- ÉTAPE 4 : POLICIES RLS
 -- ============================================
@@ -103,6 +124,7 @@ ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE purchased_resources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE team_member_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Enable all access for classes" ON classes
   FOR ALL USING (true) WITH CHECK (true);
@@ -116,6 +138,9 @@ CREATE POLICY "Enable all access for resources" ON resources
 CREATE POLICY "Enable all access for purchased_resources" ON purchased_resources
   FOR ALL USING (true) WITH CHECK (true);
 
+CREATE POLICY "Enable all access for team_member_sessions" ON team_member_sessions
+  FOR ALL USING (true) WITH CHECK (true);
+
 -- ============================================
 -- ÉTAPE 5 : INDEX
 -- ============================================
@@ -123,6 +148,7 @@ CREATE POLICY "Enable all access for purchased_resources" ON purchased_resources
 CREATE INDEX idx_teams_class_id ON teams(class_id);
 CREATE INDEX idx_purchased_resources_team_id ON purchased_resources(team_id);
 CREATE INDEX idx_purchased_resources_resource_id ON purchased_resources(resource_id);
+CREATE INDEX idx_team_member_sessions_team_id ON team_member_sessions(team_id);
 CREATE INDEX idx_resources_level ON resources(level);
 CREATE INDEX idx_resources_type ON resources(type);
 

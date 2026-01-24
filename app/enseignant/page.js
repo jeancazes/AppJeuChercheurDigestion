@@ -430,6 +430,8 @@ function ModuleEquipes({ showNotification }) {
   const [loading, setLoading] = useState(false);
   const [showResources, setShowResources] = useState(null); // ID de l'équipe dont on affiche les ressources
   const [levelAnimations, setLevelAnimations] = useState({}); // Pour les animations de niveau
+  const [showEvaluations, setShowEvaluations] = useState(null); // ID de l'équipe dont on affiche les évaluations
+  const [memberSessions, setMemberSessions] = useState({}); // {equipeId: {memberName: {session_1: 0, ...}}}
 
   useEffect(() => {
     loadData();
@@ -558,6 +560,58 @@ function ModuleEquipes({ showNotification }) {
     setShowResources(equipeId);
   };
 
+  // Gestion des évaluations de séances
+  const toggleEvaluations = async (equipeId) => {
+    if (showEvaluations === equipeId) {
+      setShowEvaluations(null);
+    } else {
+      setShowEvaluations(equipeId);
+      await loadMemberSessions(equipeId);
+    }
+  };
+
+  const loadMemberSessions = async (equipeId) => {
+    try {
+      const sessions = await gameStore.getMemberSessions(equipeId);
+      const sessionsMap = {};
+      sessions.forEach(session => {
+        sessionsMap[session.member_name] = {
+          session_1: session.session_1,
+          session_2: session.session_2,
+          session_3: session.session_3,
+          session_4: session.session_4,
+          session_5: session.session_5,
+          session_6: session.session_6,
+        };
+      });
+      setMemberSessions(prev => ({ ...prev, [equipeId]: sessionsMap }));
+    } catch (error) {
+      console.error('Erreur loadMemberSessions:', error);
+    }
+  };
+
+  const updateSessionGrade = async (equipeId, memberName, sessionNumber, grade) => {
+    try {
+      await gameStore.updateMemberSession(equipeId, memberName, sessionNumber, grade);
+      
+      // Mettre à jour le state local
+      setMemberSessions(prev => ({
+        ...prev,
+        [equipeId]: {
+          ...prev[equipeId],
+          [memberName]: {
+            ...prev[equipeId]?.[memberName],
+            [`session_${sessionNumber}`]: grade,
+          },
+        },
+      }));
+      
+      showNotification(`✅ Note enregistrée : ${memberName} - Séance ${sessionNumber}`);
+    } catch (error) {
+      showNotification('❌ Erreur d\'enregistrement');
+    }
+  };
+
   if (!selectedClasse) {
     return (
       <div style={styles.module}>
@@ -608,6 +662,7 @@ function ModuleEquipes({ showNotification }) {
             </thead>
             <tbody>
               {equipes.map(equipe => (
+                <React.Fragment key={equipe.id}>
                 <tr key={equipe.id} style={styles.tr}>
                   <td style={styles.td}>{equipe.numero}</td>
                   <td style={styles.td}>{equipe.membres.join(', ')}</td>
@@ -682,6 +737,13 @@ function ModuleEquipes({ showNotification }) {
                     >
                       {Icons.resource}
                     </button>
+                    <button 
+                      style={{...styles.iconButton, background: showEvaluations === equipe.id ? COLORS.primary : COLORS.secondary}}
+                      onClick={() => toggleEvaluations(equipe.id)}
+                      title="Évaluation par séance"
+                    >
+                      📊
+                    </button>
                     <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
                       {Icons.edit}
                     </button>
@@ -690,6 +752,57 @@ function ModuleEquipes({ showNotification }) {
                     </button>
                   </td>
                 </tr>
+                {/* Tableau d'évaluation des séances */}
+                {showEvaluations === equipe.id && (
+                  <tr>
+                    <td colSpan="8" style={{padding: '20px', background: '#F5F5F5'}}>
+                      <div style={styles.evaluationPanel}>
+                        <h4 style={{marginBottom: '15px', color: COLORS.primaryDark}}>
+                          📊 Évaluation par séance - Équipe {equipe.numero}
+                        </h4>
+                        <table style={styles.evaluationTable}>
+                          <thead>
+                            <tr>
+                              <th style={styles.evalTh}>Membre</th>
+                              <th style={styles.evalTh}>Séance 1</th>
+                              <th style={styles.evalTh}>Séance 2</th>
+                              <th style={styles.evalTh}>Séance 3</th>
+                              <th style={styles.evalTh}>Séance 4</th>
+                              <th style={styles.evalTh}>Séance 5</th>
+                              <th style={styles.evalTh}>Séance 6</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {equipe.membres.map((membre, idx) => (
+                              <tr key={idx} style={styles.evalTr}>
+                                <td style={styles.evalTd}>
+                                  <strong>{membre}</strong>
+                                </td>
+                                {[1, 2, 3, 4, 5, 6].map(sessionNum => (
+                                  <td key={sessionNum} style={styles.evalTd}>
+                                    <select
+                                      value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || 0}
+                                      onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, parseInt(e.target.value))}
+                                      style={styles.evalSelect}
+                                    >
+                                      <option value="0">0</option>
+                                      <option value="1">1</option>
+                                      <option value="2">2</option>
+                                      <option value="3">3</option>
+                                      <option value="4">4</option>
+                                      <option value="5">5</option>
+                                    </select>
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
               ))}
             </tbody>
           </table>
@@ -713,6 +826,13 @@ function ModuleEquipes({ showNotification }) {
                   title="Ressources"
                 >
                   {Icons.resource}
+                </button>
+                <button 
+                  style={{...styles.iconButton, background: showEvaluations === equipe.id ? COLORS.primary : COLORS.secondary, fontSize: '16px'}}
+                  onClick={() => toggleEvaluations(equipe.id)}
+                  title="Évaluations"
+                >
+                  📊
                 </button>
                 <button style={styles.iconButton} onClick={() => handleEdit(equipe)}>
                   {Icons.edit}
@@ -800,6 +920,41 @@ function ModuleEquipes({ showNotification }) {
                 </button>
               </div>
             </div>
+
+            {/* Panneau d'évaluation des séances (Mobile) */}
+            {showEvaluations === equipe.id && (
+              <div style={styles.evaluationPanelMobile}>
+                <h4 style={{marginBottom: '12px', color: COLORS.primaryDark, fontSize: '16px'}}>
+                  📊 Évaluation par séance
+                </h4>
+                {equipe.membres.map((membre, idx) => (
+                  <div key={idx} style={styles.memberEvalCard}>
+                    <div style={{fontWeight: 'bold', marginBottom: '8px', color: COLORS.primaryDark}}>
+                      {membre}
+                    </div>
+                    <div style={styles.sessionsGrid}>
+                      {[1, 2, 3, 4, 5, 6].map(sessionNum => (
+                        <div key={sessionNum} style={styles.sessionItem}>
+                          <label style={styles.sessionLabel}>S{sessionNum}</label>
+                          <select
+                            value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || 0}
+                            onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, parseInt(e.target.value))}
+                            style={styles.evalSelectMobile}
+                          >
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -1927,6 +2082,91 @@ const styles = {
     fontSize: '16px',
     fontWeight: 'bold',
     fontFamily: 'monospace',
+  },
+
+  // Évaluation des séances
+  evaluationPanel: {
+    background: COLORS.white,
+    borderRadius: '12px',
+    padding: '20px',
+    border: `2px solid ${COLORS.cardBorder}`,
+  },
+  evaluationTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  evalTh: {
+    background: COLORS.primary,
+    color: COLORS.white,
+    padding: '10px',
+    textAlign: 'center',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    border: `1px solid ${COLORS.primaryDark}`,
+  },
+  evalTr: {
+    borderBottom: `1px solid ${COLORS.cardBorder}`,
+  },
+  evalTd: {
+    padding: '12px 8px',
+    textAlign: 'center',
+    border: `1px solid ${COLORS.cardBorder}`,
+  },
+  evalSelect: {
+    padding: '6px 10px',
+    borderRadius: '6px',
+    border: `2px solid ${COLORS.primary}`,
+    background: COLORS.white,
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+    cursor: 'pointer',
+    width: '60px',
+    textAlign: 'center',
+  },
+  
+  // Évaluation Mobile
+  evaluationPanelMobile: {
+    background: '#F0F8FF',
+    borderRadius: '12px',
+    padding: '16px',
+    marginTop: '16px',
+    border: `2px solid ${COLORS.primary}`,
+  },
+  memberEvalCard: {
+    background: COLORS.white,
+    borderRadius: '8px',
+    padding: '12px',
+    marginBottom: '12px',
+    border: `1px solid ${COLORS.cardBorder}`,
+  },
+  sessionsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '8px',
+  },
+  sessionItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  sessionLabel: {
+    fontSize: '11px',
+    color: COLORS.textLight,
+    fontWeight: 'bold',
+    marginBottom: '4px',
+  },
+  evalSelectMobile: {
+    padding: '8px',
+    borderRadius: '8px',
+    border: `2px solid ${COLORS.primary}`,
+    background: COLORS.white,
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+    cursor: 'pointer',
+    width: '100%',
+    textAlign: 'center',
   },
 
 
