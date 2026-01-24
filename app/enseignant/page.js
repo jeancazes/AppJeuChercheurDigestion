@@ -781,8 +781,8 @@ function ModuleEquipes({ showNotification }) {
                                 {[1, 2, 3, 4, 5, 6].map(sessionNum => (
                                   <td key={sessionNum} style={styles.evalTd}>
                                     <select
-                                      value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || 0}
-                                      onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, parseInt(e.target.value))}
+                                      value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || '0'}
+                                      onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, e.target.value)}
                                       style={styles.evalSelect}
                                     >
                                       <option value="0">0</option>
@@ -791,6 +791,8 @@ function ModuleEquipes({ showNotification }) {
                                       <option value="3">3</option>
                                       <option value="4">4</option>
                                       <option value="5">5</option>
+                                      <option value="ABS">ABS</option>
+                                      <option value="NN">NN</option>
                                     </select>
                                   </td>
                                 ))}
@@ -937,8 +939,8 @@ function ModuleEquipes({ showNotification }) {
                         <div key={sessionNum} style={styles.sessionItem}>
                           <label style={styles.sessionLabel}>S{sessionNum}</label>
                           <select
-                            value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || 0}
-                            onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, parseInt(e.target.value))}
+                            value={memberSessions[equipe.id]?.[membre]?.[`session_${sessionNum}`] || '0'}
+                            onChange={(e) => updateSessionGrade(equipe.id, membre, sessionNum, e.target.value)}
                             style={styles.evalSelectMobile}
                           >
                             <option value="0">0</option>
@@ -947,6 +949,8 @@ function ModuleEquipes({ showNotification }) {
                             <option value="3">3</option>
                             <option value="4">4</option>
                             <option value="5">5</option>
+                            <option value="ABS">ABS</option>
+                            <option value="NN">NN</option>
                           </select>
                         </div>
                       ))}
