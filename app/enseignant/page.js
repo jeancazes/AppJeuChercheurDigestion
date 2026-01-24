@@ -212,6 +212,13 @@ export default function EnseignantPage() {
               description="Ajouter, modifier, supprimer des ressources éducatives"
               onClick={() => setCurrentModule('resources')}
             />
+            
+            <MenuCard
+              icon="📊"
+              title="Synthèse des Résultats"
+              description="Consulter et exporter les moyennes des élèves"
+              onClick={() => setCurrentModule('synthese')}
+            />
           </div>
 
           <button 
@@ -240,6 +247,9 @@ export default function EnseignantPage() {
           )}
           {currentModule === 'resources' && (
             <ModuleRessources showNotification={showNotification} />
+          )}
+          {currentModule === 'synthese' && (
+            <ModuleSynthese showNotification={showNotification} />
           )}
         </>
       )}
@@ -1518,6 +1528,254 @@ function ResourcesModal({ equipeId, onClose, gameStore }) {
 }
 
 // ============================================
+// MODULE : SYNTHÈSE DES RÉSULTATS
+// ============================================
+function ModuleSynthese({ showNotification }) {
+  const gameStore = getGameStore();
+  const [classes, setClasses] = useState([]);
+  const [selectedClasse, setSelectedClasse] = useState(null);
+  const [viewMode, setViewMode] = useState('alphabetical'); // 'alphabetical' ou 'byTeam'
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      await gameStore.refreshClasses();
+      setClasses(gameStore.getClasses());
+    } catch (error) {
+      showNotification('❌ Erreur de chargement');
+    }
+    setLoading(false);
+  };
+
+  const selectClasse = async (classe) => {
+    setLoading(true);
+    setSelectedClasse(classe);
+    try {
+      await gameStore.loadClasse(classe.id);
+      await calculateResults(classe.id);
+    } catch (error) {
+      showNotification('❌ Erreur de chargement');
+    }
+    setLoading(false);
+  };
+
+  const calculateResults = async (classeId) => {
+    const equipes = gameStore.getEquipesByClasse(classeId);
+    const allResults = [];
+
+    for (const equipe of equipes) {
+      const sessions = await gameStore.getMemberSessions(equipe.id);
+      
+      for (const membre of equipe.membres) {
+        const memberSessions = sessions.find(s => s.member_name === membre);
+        const moyenne = calculateAverage(memberSessions);
+        
+        allResults.push({
+          nom: membre,
+          equipe: equipe.numero,
+          sessions: memberSessions,
+          moyenne: moyenne,
+          moyenneSur20: (moyenne / 5 * 20).toFixed(2),
+        });
+      }
+    }
+
+    setResults(allResults);
+  };
+
+  const calculateAverage = (memberSessions) => {
+    if (!memberSessions) return 0;
+    
+    const notes = [];
+    for (let i = 1; i <= 6; i++) {
+      const value = memberSessions[`session_${i}`];
+      // Exclure ABS et NN du calcul
+      if (value && value !== 'ABS' && value !== 'NN') {
+        notes.push(parseInt(value));
+      }
+    }
+    
+    if (notes.length === 0) return 0;
+    const sum = notes.reduce((a, b) => a + b, 0);
+    return sum / notes.length;
+  };
+
+  const getSortedResults = () => {
+    if (viewMode === 'alphabetical') {
+      return [...results].sort((a, b) => a.nom.localeCompare(b.nom));
+    } else {
+      return [...results].sort((a, b) => {
+        if (a.equipe !== b.equipe) return a.equipe - b.equipe;
+        return a.nom.localeCompare(b.nom);
+      });
+    }
+  };
+
+  const exportToPDF = async () => {
+    try {
+      // Dynamically import jsPDF
+      const { default: jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
+      
+      const doc = new jsPDF();
+      const sortedResults = getSortedResults();
+      
+      // Titre
+      doc.setFontSize(18);
+      doc.text('Synthèse des Résultats', 14, 20);
+      
+      // Classe
+      doc.setFontSize(12);
+      doc.text(`Classe : ${selectedClasse.name}`, 14, 30);
+      doc.text(`Mode : ${viewMode === 'alphabetical' ? 'Par ordre alphabétique' : 'Par équipe'}`, 14, 37);
+      doc.text(`Date : ${new Date().toLocaleDateString('fr-FR')}`, 14, 44);
+      
+      // Préparer les données du tableau
+      const tableData = sortedResults.map(r => [
+        r.nom,
+        viewMode === 'byTeam' ? `Équipe ${r.equipe}` : '',
+        r.sessions?.session_1 || '-',
+        r.sessions?.session_2 || '-',
+        r.sessions?.session_3 || '-',
+        r.sessions?.session_4 || '-',
+        r.sessions?.session_5 || '-',
+        r.sessions?.session_6 || '-',
+        r.moyenneSur20 + '/20',
+      ]);
+      
+      const headers = viewMode === 'byTeam' 
+        ? [['Nom', 'Équipe', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Moyenne']]
+        : [['Nom', '', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Moyenne']];
+      
+      // Créer le tableau
+      doc.autoTable({
+        head: headers,
+        body: tableData,
+        startY: 50,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [2, 136, 209] },
+      });
+      
+      // Télécharger
+      const filename = `resultats_${selectedClasse.name}_${viewMode}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+      
+      showNotification('✅ PDF exporté avec succès');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      showNotification('❌ Erreur lors de l\'export PDF');
+    }
+  };
+
+  if (!selectedClasse) {
+    return (
+      <div style={styles.module}>
+        <h2 style={styles.moduleTitle}>📊 Synthèse des Résultats</h2>
+        <p style={{ textAlign: 'center', color: COLORS.textLight, marginBottom: '30px' }}>
+          Sélectionnez une classe pour consulter les résultats
+        </p>
+        <div style={styles.classeGrid}>
+          {classes.map(classe => (
+            <div key={classe.id} style={styles.classeCard} onClick={() => selectClasse(classe)}>
+              <h3>{classe.name}</h3>
+              <p>{classe.anneeScolaire}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const sortedResults = getSortedResults();
+
+  return (
+    <div style={styles.module}>
+      <h2 style={styles.moduleTitle}>
+        📊 Synthèse - {selectedClasse.name}
+      </h2>
+
+      {/* Contrôles */}
+      <div style={styles.syntheseControls}>
+        <div style={styles.viewToggle}>
+          <button
+            style={{
+              ...styles.toggleButton,
+              ...(viewMode === 'alphabetical' ? styles.toggleButtonActive : {}),
+            }}
+            onClick={() => setViewMode('alphabetical')}
+          >
+            📝 Par ordre alphabétique
+          </button>
+          <button
+            style={{
+              ...styles.toggleButton,
+              ...(viewMode === 'byTeam' ? styles.toggleButtonActive : {}),
+            }}
+            onClick={() => setViewMode('byTeam')}
+          >
+            👥 Par équipe
+          </button>
+        </div>
+        
+        <button style={styles.exportButton} onClick={exportToPDF}>
+          📄 Exporter en PDF
+        </button>
+      </div>
+
+      {/* Tableau des résultats */}
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Nom</th>
+              {viewMode === 'byTeam' && <th style={styles.th}>Équipe</th>}
+              <th style={styles.th}>S1</th>
+              <th style={styles.th}>S2</th>
+              <th style={styles.th}>S3</th>
+              <th style={styles.th}>S4</th>
+              <th style={styles.th}>S5</th>
+              <th style={styles.th}>S6</th>
+              <th style={styles.th}>Moyenne /20</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedResults.map((result, idx) => (
+              <tr key={idx} style={styles.tr}>
+                <td style={styles.td}><strong>{result.nom}</strong></td>
+                {viewMode === 'byTeam' && (
+                  <td style={styles.td}>Équipe {result.equipe}</td>
+                )}
+                <td style={styles.td}>{result.sessions?.session_1 || '-'}</td>
+                <td style={styles.td}>{result.sessions?.session_2 || '-'}</td>
+                <td style={styles.td}>{result.sessions?.session_3 || '-'}</td>
+                <td style={styles.td}>{result.sessions?.session_4 || '-'}</td>
+                <td style={styles.td}>{result.sessions?.session_5 || '-'}</td>
+                <td style={styles.td}>{result.sessions?.session_6 || '-'}</td>
+                <td style={{...styles.td, fontWeight: 'bold', color: COLORS.primary}}>
+                  {result.moyenneSur20}/20
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {sortedResults.length === 0 && (
+        <p style={{ textAlign: 'center', color: COLORS.textLight, marginTop: '40px' }}>
+          Aucune évaluation enregistrée pour cette classe
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // STYLES
 // ============================================
 const styles = {
@@ -2342,5 +2600,44 @@ const styles = {
     boxShadow: `0 4px 12px ${COLORS.cardShadow}`,
     zIndex: 2000,
     fontWeight: 'bold',
+  },
+
+  // Synthèse des résultats
+  syntheseControls: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '30px',
+    flexWrap: 'wrap',
+    gap: '15px',
+  },
+  viewToggle: {
+    display: 'flex',
+    gap: '10px',
+  },
+  toggleButton: {
+    padding: '12px 24px',
+    border: `2px solid ${COLORS.primary}`,
+    borderRadius: '8px',
+    background: COLORS.white,
+    color: COLORS.primary,
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    transition: 'all 0.2s',
+  },
+  toggleButtonActive: {
+    background: COLORS.primary,
+    color: COLORS.white,
+  },
+  exportButton: {
+    padding: '12px 30px',
+    background: COLORS.success,
+    color: COLORS.white,
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '16px',
+    transition: 'all 0.2s',
   },
 };
