@@ -433,6 +433,220 @@ const TeamSelectionPage = ({ classe, onSelectTeam, onBack }) => {
 };
 
 // ============================================
+// PAGE VÉRIFICATION CODE PIN
+// ============================================
+const PinCodePage = ({ team, onPinVerified, onBack }) => {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+
+  const handleKeypadClick = (digit) => {
+    if (code.length < 4) {
+      const newCode = code + digit;
+      setCode(newCode);
+      
+      // Vérifier automatiquement quand 4 chiffres
+      if (newCode.length === 4) {
+        setTimeout(() => verifyCode(newCode), 100);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    setCode(code.slice(0, -1));
+    setError(false);
+  };
+
+  const handleClear = () => {
+    setCode('');
+    setError(false);
+  };
+
+  const verifyCode = (codeToVerify) => {
+    const correctPin = team.pinCode || '0000';
+    
+    if (codeToVerify === correctPin) {
+      // Code correct !
+      onPinVerified();
+    } else {
+      // Code incorrect
+      setError(true);
+      setAttempts(attempts + 1);
+      setTimeout(() => {
+        setCode('');
+        setError(false);
+      }, 1000);
+    }
+  };
+
+  const codeDisplay = Array(4).fill(null).map((_, i) => (
+    <div
+      key={i}
+      style={{
+        width: '60px',
+        height: '60px',
+        borderRadius: '12px',
+        border: `3px solid ${error ? '#f44336' : COLORS.primary}`,
+        background: i < code.length ? COLORS.primary : COLORS.white,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '28px',
+        fontWeight: 'bold',
+        color: i < code.length ? COLORS.white : COLORS.textLight,
+        transition: 'all 0.2s',
+      }}
+    >
+      {i < code.length ? '•' : ''}
+    </div>
+  ));
+
+  return (
+    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${COLORS.background} 0%, #E3F2FD 100%)`, padding: '20px' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '32px', color: COLORS.primaryDark, marginBottom: '10px' }}>
+          🔒 Code PIN
+        </h1>
+        <p style={{ fontSize: '18px', color: COLORS.textLight }}>
+          Équipe {team.numero}
+        </p>
+        <p style={{ fontSize: '14px', color: COLORS.textLight, marginTop: '5px' }}>
+          {team.membres.join(', ')}
+        </p>
+      </div>
+
+      {/* Code Display */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '40px' }}>
+        {codeDisplay}
+      </div>
+
+      {/* Message d'erreur */}
+      {error && (
+        <div style={{ 
+          textAlign: 'center', 
+          color: '#f44336', 
+          fontSize: '16px', 
+          fontWeight: 'bold',
+          marginBottom: '20px',
+        }}>
+          ❌ Code incorrect
+        </div>
+      )}
+
+      {/* Tentatives */}
+      <div style={{ textAlign: 'center', fontSize: '14px', color: COLORS.textLight, marginBottom: '30px' }}>
+        Tentatives : {attempts}
+      </div>
+
+      {/* Keypad */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gap: '15px', 
+        maxWidth: '350px', 
+        margin: '0 auto 30px',
+      }}>
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(digit => (
+          <button
+            key={digit}
+            onClick={() => handleKeypadClick(digit)}
+            style={{
+              background: COLORS.white,
+              border: `3px solid ${COLORS.primary}`,
+              borderRadius: '15px',
+              fontSize: '32px',
+              fontWeight: 'bold',
+              color: COLORS.primaryDark,
+              height: '70px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            }}
+          >
+            {digit}
+          </button>
+        ))}
+        
+        {/* Clear button */}
+        <button
+          onClick={handleClear}
+          style={{
+            background: COLORS.textLight,
+            border: `3px solid ${COLORS.textLight}`,
+            borderRadius: '15px',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: COLORS.white,
+            height: '70px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        >
+          C
+        </button>
+
+        {/* 0 button */}
+        <button
+          onClick={() => handleKeypadClick('0')}
+          style={{
+            background: COLORS.white,
+            border: `3px solid ${COLORS.primary}`,
+            borderRadius: '15px',
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: COLORS.primaryDark,
+            height: '70px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        >
+          0
+        </button>
+
+        {/* Delete button */}
+        <button
+          onClick={handleDelete}
+          style={{
+            background: COLORS.textLight,
+            border: `3px solid ${COLORS.textLight}`,
+            borderRadius: '15px',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: COLORS.white,
+            height: '70px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        >
+          ⌫
+        </button>
+      </div>
+
+      {/* Back button */}
+      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+        <button 
+          onClick={onBack}
+          style={{ 
+            background: 'transparent',
+            border: 'none',
+            color: COLORS.primary,
+            fontSize: '16px',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+          }}
+        >
+          ← Retour à la sélection
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // PAGE D'ACCUEIL
 // ============================================
 const HomePage = ({ equipe, classeInfo, onNavigate, onLogout }) => {
@@ -1168,6 +1382,7 @@ const AidePage = ({ onBack }) => {
 export default function StudentApp() {
   const [step, setStep] = useState('select-class');
   const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null); // Équipe en attente de vérification PIN
   const [equipeId, setEquipeId] = useState(null);
   const [page, setPage] = useState('home');
   const [equipe, setEquipe] = useState(null);
@@ -1192,13 +1407,23 @@ export default function StudentApp() {
   };
 
   const handleSelectTeam = (teamId) => {
-    setEquipeId(teamId);
+    // Charger l'équipe pour vérification PIN
+    const gameStore = getGameStore();
+    const team = gameStore.getEquipe(teamId);
+    setSelectedTeam(team);
+    setStep('verify-pin');
+  };
+
+  const handlePinVerified = () => {
+    // PIN correct, accès autorisé
+    setEquipeId(selectedTeam.id);
     setStep('app');
   };
 
   const handleLogout = () => {
     setStep('select-class');
     setSelectedClass(null);
+    setSelectedTeam(null);
     setEquipeId(null);
     setEquipe(null);
     setPage('home');
@@ -1232,6 +1457,18 @@ export default function StudentApp() {
     return (
       <div style={{ maxWidth: '500px', margin: '0 auto', minHeight: '100vh', fontFamily: "'Nunito', 'Segoe UI', sans-serif", boxShadow: '0 0 60px rgba(0,0,0,0.1)' }}>
         <TeamSelectionPage classe={selectedClass} onSelectTeam={handleSelectTeam} onBack={() => setStep('select-class')}/>
+      </div>
+    );
+  }
+
+  if (step === 'verify-pin') {
+    return (
+      <div style={{ maxWidth: '500px', margin: '0 auto', minHeight: '100vh', fontFamily: "'Nunito', 'Segoe UI', sans-serif", boxShadow: '0 0 60px rgba(0,0,0,0.1)' }}>
+        <PinCodePage 
+          team={selectedTeam} 
+          onPinVerified={handlePinVerified} 
+          onBack={() => setStep('select-team')}
+        />
       </div>
     );
   }

@@ -468,13 +468,13 @@ function ModuleEquipes({ showNotification }) {
   const handleCreate = () => {
     setEditingEquipe(null);
     const nextNumero = equipes.length > 0 ? Math.max(...equipes.map(e => e.numero)) + 1 : 1;
-    setFormData({ numero: nextNumero, membres: ['', ''] });
+    setFormData({ numero: nextNumero, membres: ['', ''], pinCode: '0000' });
     setShowModal(true);
   };
 
   const handleEdit = (equipe) => {
     setEditingEquipe(equipe);
-    setFormData({ numero: equipe.numero, membres: [...equipe.membres] });
+    setFormData({ numero: equipe.numero, membres: [...equipe.membres], pinCode: equipe.pinCode || '0000' });
     setShowModal(true);
   };
 
@@ -485,13 +485,23 @@ function ModuleEquipes({ showNotification }) {
       return;
     }
 
+    const pinCode = formData.pinCode || '0000';
+    if (pinCode.length !== 4 || !/^\d{4}$/.test(pinCode)) {
+      showNotification('❌ Le code PIN doit contenir 4 chiffres');
+      return;
+    }
+
     setLoading(true);
     try {
       if (editingEquipe) {
-        await gameStore.updateEquipe(editingEquipe.id, { numero: parseInt(formData.numero), membres });
+        await gameStore.updateEquipe(editingEquipe.id, { 
+          numero: parseInt(formData.numero), 
+          membres,
+          pinCode 
+        });
         showNotification('✅ Équipe modifiée');
       } else {
-        await gameStore.createEquipe(selectedClasse.id, parseInt(formData.numero), membres);
+        await gameStore.createEquipe(selectedClasse.id, parseInt(formData.numero), membres, pinCode);
         showNotification('✅ Équipe créée');
       }
       setShowModal(false);
@@ -590,6 +600,7 @@ function ModuleEquipes({ showNotification }) {
                 <th style={styles.th}>Membres</th>
                 <th style={styles.th}>Level</th>
                 <th style={styles.th}>Budget</th>
+                <th style={styles.th}>Code PIN</th>
                 <th style={styles.th}>Découvertes</th>
                 <th style={styles.th}>Raisonnement</th>
                 <th style={styles.th}>Actions</th>
@@ -625,6 +636,9 @@ function ModuleEquipes({ showNotification }) {
                         +10
                       </button>
                     </div>
+                  </td>
+                  <td style={styles.td}>
+                    <span style={styles.pinCode}>🔒 {equipe.pinCode || '0000'}</span>
                   </td>
                   <td style={styles.td}>
                     <div style={styles.pointsControl}>
@@ -721,23 +735,29 @@ function ModuleEquipes({ showNotification }) {
                 </span>
               </div>
               <div style={styles.cardRowItem}>
-                <div style={styles.cardLabel}>Budget</div>
-                <div style={styles.budgetControlMobile}>
-                  <button 
-                    style={styles.budgetButtonMobile} 
-                    onClick={() => addBudget(equipe, -10)}
-                    disabled={equipe.budget < 10}
-                  >
-                    −10
-                  </button>
-                  <span style={styles.budgetValueMobile}>{equipe.budget}€</span>
-                  <button 
-                    style={styles.budgetButtonMobile} 
-                    onClick={() => addBudget(equipe, 10)}
-                  >
-                    +10
-                  </button>
-                </div>
+                <div style={styles.cardLabel}>Code PIN</div>
+                <span style={styles.pinCodeMobile}>🔒 {equipe.pinCode || '0000'}</span>
+              </div>
+            </div>
+
+            {/* Budget */}
+            <div style={styles.cardSection}>
+              <div style={styles.cardLabel}>Budget</div>
+              <div style={styles.budgetControlMobile}>
+                <button 
+                  style={styles.budgetButtonMobile} 
+                  onClick={() => addBudget(equipe, -10)}
+                  disabled={equipe.budget < 10}
+                >
+                  −10
+                </button>
+                <span style={styles.budgetValueMobile}>{equipe.budget}€</span>
+                <button 
+                  style={styles.budgetButtonMobile} 
+                  onClick={() => addBudget(equipe, 10)}
+                >
+                  +10
+                </button>
               </div>
             </div>
 
@@ -796,6 +816,24 @@ function ModuleEquipes({ showNotification }) {
               style={styles.input}
             />
           </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Code PIN (4 chiffres)</label>
+            <input
+              type="text"
+              value={formData.pinCode || '0000'}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setFormData({ ...formData, pinCode: value });
+              }}
+              placeholder="0000"
+              maxLength="4"
+              style={styles.input}
+            />
+            <small style={{ color: COLORS.textLight, fontSize: '12px' }}>
+              Code à 4 chiffres pour sécuriser l'accès de l'équipe
+            </small>
+          </div>
           
           <div style={styles.formGroup}>
             <label style={styles.label}>Membres</label>
@@ -831,6 +869,24 @@ function ModuleEquipes({ showNotification }) {
             >
               + Ajouter un membre
             </button>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>🔒 Code PIN (4 chiffres)</label>
+            <input
+              type="text"
+              value={formData.pinCode || ''}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setFormData({ ...formData, pinCode: value });
+              }}
+              placeholder="0000"
+              maxLength="4"
+              style={styles.input}
+            />
+            <small style={{ color: COLORS.textLight, fontSize: '12px' }}>
+              Code requis pour que les élèves accèdent à leur fiche
+            </small>
           </div>
 
           <div style={styles.modalActions}>
@@ -1850,6 +1906,27 @@ const styles = {
     padding: '8px',
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+  
+  // PIN Code
+  pinCode: {
+    background: COLORS.secondary,
+    color: COLORS.primaryDark,
+    padding: '6px 12px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
+  pinCodeMobile: {
+    display: 'inline-block',
+    background: COLORS.secondary,
+    color: COLORS.primaryDark,
+    padding: '8px 16px',
+    borderRadius: '12px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
   },
 
 

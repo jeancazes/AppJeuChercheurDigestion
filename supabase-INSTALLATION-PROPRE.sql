@@ -39,6 +39,7 @@ CREATE TABLE teams (
   budget INTEGER DEFAULT 100,
   discovery_points INTEGER DEFAULT 0,
   reasoning_points INTEGER DEFAULT 0,
+  pin_code TEXT DEFAULT '0000',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(class_id, team_number)
