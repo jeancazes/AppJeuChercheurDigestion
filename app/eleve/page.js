@@ -650,6 +650,40 @@ const PinCodePage = ({ team, onPinVerified, onBack }) => {
 // PAGE D'ACCUEIL
 // ============================================
 const HomePage = ({ equipe, classeInfo, onNavigate, onLogout }) => {
+  const [memberSessions, setMemberSessions] = useState({});
+  const [loadingEvals, setLoadingEvals] = useState(true);
+
+  useEffect(() => {
+    const loadEvaluations = async () => {
+      setLoadingEvals(true);
+      try {
+        const gameStore = getGameStore();
+        const sessions = await gameStore.getMemberSessions(equipe.id);
+        
+        // Convertir en objet pour accès facile
+        const sessionsMap = {};
+        sessions.forEach(session => {
+          sessionsMap[session.member_name] = {
+            session_1: session.session_1 || '-',
+            session_2: session.session_2 || '-',
+            session_3: session.session_3 || '-',
+            session_4: session.session_4 || '-',
+            session_5: session.session_5 || '-',
+            session_6: session.session_6 || '-',
+          };
+        });
+        setMemberSessions(sessionsMap);
+      } catch (error) {
+        console.error('Erreur chargement évaluations:', error);
+      }
+      setLoadingEvals(false);
+    };
+
+    if (equipe?.id) {
+      loadEvaluations();
+    }
+  }, [equipe?.id]);
+
   const levelInfo = LEVEL_CONFIG[equipe.level];
   const nextLevel = equipe.level < 4 ? LEVEL_CONFIG[equipe.level + 1] : null;
   const progressToNext = nextLevel 
@@ -805,6 +839,118 @@ const HomePage = ({ equipe, classeInfo, onNavigate, onLogout }) => {
             </div>
             <div style={{ fontSize: '0.7rem', color: COLORS.textLight }}>🧠 Raisonnement</div>
           </div>
+        </div>
+      </div>
+
+      {/* Tableau des évaluations */}
+      <div style={{
+        background: COLORS.white,
+        borderRadius: '20px',
+        padding: '20px',
+        marginBottom: '24px',
+        boxShadow: `0 8px 30px ${COLORS.cardShadow}`,
+        border: `2px solid ${COLORS.cardBorder}`,
+      }}>
+        <h3 style={{
+          color: COLORS.primaryDark,
+          fontSize: '1.1rem',
+          fontWeight: '700',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          📊 Vos Évaluations
+        </h3>
+
+        {loadingEvals ? (
+          <p style={{ textAlign: 'center', color: COLORS.textLight, padding: '20px' }}>
+            Chargement...
+          </p>
+        ) : equipe.membres.some(m => memberSessions[m]) ? (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '0.85rem',
+            }}>
+              <thead>
+                <tr style={{ background: COLORS.secondary }}>
+                  <th style={{
+                    padding: '10px 8px',
+                    textAlign: 'left',
+                    color: COLORS.primaryDark,
+                    fontWeight: '700',
+                    borderBottom: `2px solid ${COLORS.primary}`,
+                  }}>
+                    Membre
+                  </th>
+                  {[1, 2, 3, 4, 5, 6].map(num => (
+                    <th key={num} style={{
+                      padding: '10px 6px',
+                      textAlign: 'center',
+                      color: COLORS.primaryDark,
+                      fontWeight: '700',
+                      borderBottom: `2px solid ${COLORS.primary}`,
+                      fontSize: '0.8rem',
+                    }}>
+                      S{num}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {equipe.membres.map((membre, idx) => (
+                  <tr key={idx} style={{
+                    background: idx % 2 === 0 ? COLORS.white : '#F5F5F5',
+                  }}>
+                    <td style={{
+                      padding: '12px 8px',
+                      fontWeight: '600',
+                      color: COLORS.text,
+                      borderBottom: `1px solid ${COLORS.cardBorder}`,
+                    }}>
+                      {membre}
+                    </td>
+                    {[1, 2, 3, 4, 5, 6].map(num => {
+                      const value = memberSessions[membre]?.[`session_${num}`] || '-';
+                      const isABS = value === 'ABS';
+                      const isNN = value === 'NN';
+                      const isNumeric = !isABS && !isNN && value !== '-';
+                      
+                      return (
+                        <td key={num} style={{
+                          padding: '12px 6px',
+                          textAlign: 'center',
+                          fontWeight: '700',
+                          borderBottom: `1px solid ${COLORS.cardBorder}`,
+                          color: isABS ? '#FF6B6B' : isNN ? '#95A5A6' : isNumeric ? COLORS.primary : COLORS.textLight,
+                          background: isABS ? '#FFE5E5' : isNN ? '#ECF0F1' : 'transparent',
+                        }}>
+                          {value}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p style={{ textAlign: 'center', color: COLORS.textLight, padding: '20px', fontSize: '0.9rem' }}>
+            Aucune évaluation pour le moment
+          </p>
+        )}
+
+        <div style={{
+          marginTop: '12px',
+          padding: '12px',
+          background: '#F0F8FF',
+          borderRadius: '10px',
+          fontSize: '0.75rem',
+          color: COLORS.textLight,
+        }}>
+          <strong>Légende :</strong> 0-5 = Note • <span style={{ color: '#FF6B6B' }}>ABS</span> = Absent • <span style={{ color: '#95A5A6' }}>NN</span> = Non Noté
         </div>
       </div>
 
