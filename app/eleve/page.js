@@ -384,16 +384,58 @@ const TeamSelectionPage = ({ classe, onSelectTeam, onBack }) => {
                         </span>
                       </div>
                     </div>
-                    <div style={{
-                      background: '#E8F5E9',
-                      padding: '8px 12px',
-                      borderRadius: '10px',
-                      textAlign: 'center',
-                    }}>
-                      <div style={{ fontSize: '1rem', fontWeight: '800', color: COLORS.success }}>
-                        {equipe.budget}€
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {/* Points de réputation */}
+                      <div style={{
+                        background: '#F3E5F5',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        minWidth: '80px',
+                      }}>
+                        <div style={{ fontSize: '0.65rem', color: COLORS.textLight, marginBottom: '4px', textAlign: 'center' }}>
+                          Points
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{
+                              width: `${Math.min((equipe.reputationDecouvertes / 15) * 50, 50)}px`,
+                              height: '6px',
+                              background: 'linear-gradient(90deg, #2196F3, #64B5F6)',
+                              borderRadius: '3px',
+                              transition: 'width 0.3s',
+                            }}/>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#2196F3', minWidth: '16px' }}>
+                              {equipe.reputationDecouvertes}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{
+                              width: `${Math.min((equipe.reputationRaisonnement / 15) * 50, 50)}px`,
+                              height: '6px',
+                              background: 'linear-gradient(90deg, #9C27B0, #BA68C8)',
+                              borderRadius: '3px',
+                              transition: 'width 0.3s',
+                            }}/>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#9C27B0', minWidth: '16px' }}>
+                              {equipe.reputationRaisonnement}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.65rem', color: COLORS.textLight }}>budget</div>
+                      
+                      {/* Budget */}
+                      <div style={{
+                        background: '#E8F5E9',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        textAlign: 'center',
+                      }}>
+                        <div style={{ fontSize: '1rem', fontWeight: '800', color: COLORS.success }}>
+                          {equipe.budget}€
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: COLORS.textLight }}>budget</div>
+                      </div>
                     </div>
                   </div>
                   
@@ -897,6 +939,17 @@ const HomePage = ({ equipe, classeInfo, onNavigate, onLogout }) => {
                       S{num}
                     </th>
                   ))}
+                  <th style={{
+                    padding: '10px 8px',
+                    textAlign: 'center',
+                    color: COLORS.primaryDark,
+                    fontWeight: '700',
+                    borderBottom: `2px solid ${COLORS.primary}`,
+                    fontSize: '0.8rem',
+                    background: '#FFF9E6',
+                  }}>
+                    Moyenne
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -931,6 +984,45 @@ const HomePage = ({ equipe, classeInfo, onNavigate, onLogout }) => {
                         </td>
                       );
                     })}
+                    {(() => {
+                      // Calculer la moyenne
+                      const notes = [];
+                      for (let i = 1; i <= 6; i++) {
+                        const value = memberSessions[membre]?.[`session_${i}`];
+                        if (value && value !== 'ABS' && value !== 'NN' && value !== '-') {
+                          notes.push(parseInt(value));
+                        }
+                      }
+                      
+                      let moyenneText = '-';
+                      let moyenneColor = COLORS.textLight;
+                      
+                      if (notes.length > 0) {
+                        const sum = notes.reduce((a, b) => a + b, 0);
+                        const avg = sum / notes.length;
+                        const moyenneSur20 = (avg / 5 * 20).toFixed(1);
+                        moyenneText = `${moyenneSur20}/20`;
+                        
+                        // Couleur selon la moyenne
+                        if (avg >= 4) moyenneColor = '#4CAF50'; // Vert
+                        else if (avg >= 3) moyenneColor = '#FF9800'; // Orange
+                        else moyenneColor = '#FF6B6B'; // Rouge
+                      }
+                      
+                      return (
+                        <td style={{
+                          padding: '12px 8px',
+                          textAlign: 'center',
+                          fontWeight: '800',
+                          borderBottom: `1px solid ${COLORS.cardBorder}`,
+                          color: moyenneColor,
+                          background: '#FFF9E6',
+                          fontSize: '0.9rem',
+                        }}>
+                          {moyenneText}
+                        </td>
+                      );
+                    })()}
                   </tr>
                 ))}
               </tbody>
