@@ -222,4 +222,4 @@ gameStore.purchaseResource(equipeId, resourceId)
 ✅ Interface v6 préservée pixel-perfect  
 ✅ Production-ready pour vos classes !  
 
-**🚀 Prêt à enseigner !**
+***🚀 Prêt à enseigner !***
